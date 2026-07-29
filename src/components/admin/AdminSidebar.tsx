@@ -4,17 +4,27 @@ import { adminNav } from "@/data/admin";
 
 export function AdminSidebar() {
   return (
-    <aside className="flex w-full flex-col border-b border-zinc-200 bg-zinc-950 text-zinc-100 md:w-56 md:border-b-0 md:border-r md:border-zinc-800">
-      <div className="flex items-center justify-between px-4 py-4 md:block">
+    <aside className="flex w-full flex-col border-b border-zinc-200 bg-zinc-950 text-zinc-100 md:w-56 md:border-b-0 md:border-r md:border-zinc-800 [padding-top:env(safe-area-inset-top)]">
+      <div className="flex items-center justify-between gap-3 px-4 py-4 md:block">
         <Link href="/admin" className="text-sm font-semibold tracking-wide">
           Cleoh Admin
         </Link>
-        <Link
-          href="/"
-          className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline md:mt-2 md:block"
-        >
-          Ver tienda
-        </Link>
+        <div className="flex items-center gap-3 md:mt-2 md:block">
+          <Link
+            href="/"
+            className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
+          >
+            Ver tienda
+          </Link>
+          <form action={logoutAdmin} className="md:hidden">
+            <button
+              type="submit"
+              className="text-xs text-zinc-400 underline-offset-2 hover:text-zinc-200 hover:underline"
+            >
+              Salir
+            </button>
+          </form>
+        </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:overflow-visible md:px-2 md:pb-6">
         {adminNav.map((item) => (
