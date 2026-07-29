@@ -44,7 +44,7 @@ export function calculateRefundAmountCents(
     );
   }
 
-  let itemsRefundCents = Math.max(0, itemsSubtotalCents - discountPortion);
+  const itemsRefundCents = Math.max(0, itemsSubtotalCents - discountPortion);
 
   const allItemsFullyRefunded = items.every((item) => {
     const refundQty = lineMap.get(item.id) ?? 0;

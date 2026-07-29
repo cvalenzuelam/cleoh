@@ -1,4 +1,8 @@
 import { NextResponse } from "next/server";
+import {
+  cloudinaryEnhanceEnabled,
+  enhanceImageBuffer,
+} from "@/lib/cloudinary/enhance";
 import { r2Configured, uploadToR2 } from "@/lib/r2/client";
 import { createClient } from "@/lib/supabase/server";
 
@@ -69,27 +73,54 @@ export async function POST(request: Request) {
     );
   }
 
-  const ext =
-    file.type === "image/jpeg"
-      ? "jpg"
-      : file.type === "image/png"
-        ? "png"
-        : file.type === "image/webp"
-          ? "webp"
-          : "gif";
-
   const stamp = Date.now().toString(36);
   const rand = Math.random().toString(36).slice(2, 8);
-  const key = `products/${stamp}-${rand}.${ext}`;
 
   try {
-    const buffer = Buffer.from(await file.arrayBuffer());
+    let buffer = Buffer.from(await file.arrayBuffer());
+    let contentType = file.type;
+    let ext =
+      file.type === "image/jpeg"
+        ? "jpg"
+        : file.type === "image/png"
+          ? "png"
+          : file.type === "image/webp"
+            ? "webp"
+            : "gif";
+
+    if (cloudinaryEnhanceEnabled()) {
+      try {
+        const enhanced = await enhanceImageBuffer(buffer, contentType);
+        buffer = Buffer.from(enhanced.buffer);
+        contentType = enhanced.contentType;
+        ext = enhanced.ext;
+      } catch (e) {
+        console.error("[cloudinary enhance]", e);
+        return NextResponse.json(
+          {
+            message:
+              e instanceof Error
+                ? e.message
+                : "No se pudo mejorar la imagen con Cloudinary.",
+          },
+          { status: 502 },
+        );
+      }
+    }
+
+    const key = `products/${stamp}-${rand}.${ext}`;
+
     const url = await uploadToR2({
       key,
       body: buffer,
-      contentType: file.type,
+      contentType,
     });
-    return NextResponse.json({ ok: true, url, key });
+    return NextResponse.json({
+      ok: true,
+      url,
+      key,
+      enhanced: cloudinaryEnhanceEnabled(),
+    });
   } catch (e) {
     console.error("[r2 upload]", e);
     return NextResponse.json(
