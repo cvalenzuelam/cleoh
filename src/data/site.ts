@@ -4,7 +4,9 @@ export const site = {
   slogan: "Un toque de romance en cada una de nuestras piezas",
   description:
     "Bienvenida a la lencería romántica en Cleoh. Un toque de romance en cada una de nuestras piezas.",
-  url: "https://www.cleohlenceria.com",
+  url:
+    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+    "https://lenceriacleoh.com",
   coupon: {
     code: "CLEOH10",
     label: "10% de descuento",
