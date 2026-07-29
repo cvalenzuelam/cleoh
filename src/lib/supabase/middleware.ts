@@ -35,9 +35,18 @@ export async function updateSession(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isAdminRoute = path.startsWith("/admin");
+  const isPublicAdminPath =
+    path === "/admin/login" ||
+    path === "/admin/icon" ||
+    path === "/admin/apple-icon" ||
+    path === "/admin/manifest.webmanifest";
   const isLogin = path === "/admin/login";
 
   if (!isAdminRoute) {
+    return supabaseResponse;
+  }
+
+  if (isPublicAdminPath && !isLogin) {
     return supabaseResponse;
   }
 
