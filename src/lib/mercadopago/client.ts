@@ -127,14 +127,22 @@ export async function getMercadoPagoPayment(paymentId: string) {
   return data;
 }
 
-export async function refundMercadoPagoPayment(paymentId: string) {
+export async function refundMercadoPagoPayment(
+  paymentId: string,
+  input?: { amountCents?: number },
+) {
+  const body =
+    input?.amountCents != null
+      ? { amount: Number((input.amountCents / 100).toFixed(2)) }
+      : {};
+
   const res = await fetch(`${MP_API}/v1/payments/${paymentId}/refunds`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken()}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify(body),
     cache: "no-store",
   });
 

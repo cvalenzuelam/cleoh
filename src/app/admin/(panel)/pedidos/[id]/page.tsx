@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
-import { OrderCancelAction } from "@/components/admin/OrderCancelAction";
+import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 import { OrderStatusActions } from "@/components/admin/OrderStatusActions";
 import {
   formatOrderMoney,
@@ -34,7 +34,7 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, created_at",
+      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -43,10 +43,14 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
 
   const { data: items } = await supabase
     .from("order_items")
-    .select("product_name, variant_label, quantity, unit_price_cents, line_total_cents")
+    .select(
+      "id, product_name, variant_label, quantity, refunded_quantity, unit_price_cents, line_total_cents",
+    )
     .eq("order_id", order.id);
 
   const address = (order.shipping_address ?? {}) as Address;
+
+  const paymentLabel = order.paypal_order_id ? "PayPal" : "Mercado Pago";
 
   return (
     <>
@@ -126,14 +130,20 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
               Artículos
             </h2>
             <ul className="mt-3 divide-y divide-zinc-100 text-sm">
-              {(items ?? []).map((item, idx) => (
-                <li key={idx} className="flex justify-between gap-3 py-2">
+              {(items ?? []).map((item) => (
+                <li key={item.id} className="flex justify-between gap-3 py-2">
                   <span>
                     {item.product_name}
                     {item.variant_label
                       ? ` · ${sizeDisplayName(item.variant_label)}`
-                      : ""} ×{" "}
-                    {item.quantity}
+                      : ""}{" "}
+                    × {item.quantity}
+                    {(item.refunded_quantity ?? 0) > 0 ? (
+                      <span className="text-violet-600">
+                        {" "}
+                        ({item.refunded_quantity} reembolsados)
+                      </span>
+                    ) : null}
                   </span>
                   <span className="tabular-nums">
                     {formatOrderMoney(item.line_total_cents)}
@@ -180,15 +190,24 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
             </div>
           </section>
 
-          <section className="rounded-lg border border-zinc-200 bg-white p-5">
+          <section className="rounded-lg border border-zinc-200 bg-white p-5 lg:col-span-2">
             <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Cancelación
+              Reembolso
             </h2>
+            <p className="mt-1 text-xs text-zinc-400">
+              Emite un reembolso total o parcial del pedido.
+            </p>
             <div className="mt-3">
-              <OrderCancelAction
+              <OrderRefundPanel
                 orderId={order.id}
                 status={order.status}
+                subtotalCents={order.subtotal_cents}
+                discountCents={order.discount_cents}
+                shippingCents={order.shipping_cents}
                 totalCents={order.total_cents}
+                refundedCents={order.refunded_cents ?? 0}
+                paymentLabel={paymentLabel}
+                items={items ?? []}
               />
             </div>
           </section>

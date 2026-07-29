@@ -18,6 +18,7 @@ import {
   inkSoft,
   mist,
   rose,
+  blush,
 } from "@/lib/email/brand";
 import { formatOrderMoney } from "@/lib/orders/format";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -253,6 +254,88 @@ function buildOrderShippedHtml(input: {
   });
 }
 
+function buildOrderRefundHtml(input: {
+  customerName: string;
+  orderNumber: string;
+  amountCents: number;
+  fullyRefunded: boolean;
+  lines: {
+    product_name: string;
+    variant_label: string | null;
+    quantity: number;
+  }[];
+  shopUrl: string;
+  homeUrl: string;
+}) {
+  const firstName = emailFirstName(input.customerName);
+  const orderNumber = escapeHtml(input.orderNumber);
+
+  const rows = input.lines
+    .map(
+      (item) => `
+      <tr>
+        <td style="padding:12px 0;border-bottom:1px solid ${mist};font-family:${body};font-size:14px;color:${inkSoft};">
+          ${escapeHtml(item.product_name)}
+          ${
+            item.variant_label
+              ? `<span style="color:${rose};"> · Talla ${escapeHtml(sizeDisplayName(item.variant_label))}</span>`
+              : ""
+          }
+          × ${item.quantity}
+        </td>
+      </tr>`,
+    )
+    .join("");
+
+  const bodyContent = `
+    ${emailOrderNumberBlock(orderNumber)}
+    ${emailDivider()}
+    <tr>
+      <td style="padding:0 32px;">
+        ${emailSectionLabel("Artículos reembolsados")}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${rows}
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:24px 32px 8px;text-align:center;">
+        <p style="margin:0;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
+          Monto reembolsado
+        </p>
+        <p style="margin:10px 0 0;font-family:${display};font-size:28px;font-weight:500;color:${ink};">
+          ${formatOrderMoney(input.amountCents)}
+        </p>
+        <p style="margin:16px 0 0;font-family:${body};font-size:14px;font-weight:300;line-height:1.7;color:${inkSoft};">
+          El reembolso se procesará al mismo método de pago. Si no lo ves en unos días, revisa con tu banco o PayPal.
+        </p>
+      </td>
+    </tr>
+    ${emailDivider()}
+    <tr>
+      <td style="padding:8px 32px 32px;text-align:center;">
+        ${emailButton(input.shopUrl, "Visitar la tienda")}
+      </td>
+    </tr>`;
+
+  return emailLayout({
+    title: input.fullyRefunded
+      ? `Pedido reembolsado · Cleoh`
+      : `Reembolso parcial · Cleoh`,
+    preheader: input.fullyRefunded
+      ? `Tu pedido ${input.orderNumber} fue reembolsado por completo.`
+      : `Recibiste un reembolso de ${formatOrderMoney(input.amountCents)} en tu pedido ${input.orderNumber}.`,
+    homeUrl: input.homeUrl,
+    heroHeadline: input.fullyRefunded
+      ? "Pedido reembolsado"
+      : `Reembolso procesado, ${firstName}`,
+    heroSubcopy: input.fullyRefunded
+      ? `Hola ${firstName}, reembolsamos tu pedido ${input.orderNumber} por completo.`
+      : `Hola ${firstName}, procesamos un reembolso parcial en tu pedido ${input.orderNumber}.`,
+    body: bodyContent,
+  });
+}
+
 function buildOrderCancelledHtml(input: {
   customerName: string;
   orderNumber: string;
@@ -426,6 +509,79 @@ export async function sendOrderShippedEmail(orderId: string) {
     return { sent: true as const };
   } catch (e) {
     console.error("[email] shipped send failed", e);
+    return { sent: false as const, reason: "send_failed" as const };
+  }
+}
+
+export async function sendOrderRefundEmail(
+  orderId: string,
+  input: {
+    amountCents: number;
+    fullyRefunded: boolean;
+    lines: {
+      product_name: string;
+      variant_label: string | null;
+      quantity: number;
+    }[];
+  },
+) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+  const notify = process.env.ORDER_NOTIFY_EMAIL?.trim();
+
+  if (!apiKey || !from) {
+    console.warn(
+      "[email] Falta RESEND_API_KEY o EMAIL_FROM — se omite correo de reembolso.",
+    );
+    return { sent: false as const, reason: "missing_config" as const };
+  }
+
+  const supabase = createServiceClient();
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("id, order_number, email, customer_name")
+    .eq("id", orderId)
+    .maybeSingle();
+
+  if (error || !order?.email) {
+    console.error("[email] Pedido no encontrado o sin email", error?.message);
+    return { sent: false as const, reason: "order_missing" as const };
+  }
+
+  const siteUrl = getEmailSiteUrl();
+
+  const html = buildOrderRefundHtml({
+    customerName: order.customer_name || "hola",
+    orderNumber: order.order_number,
+    amountCents: input.amountCents,
+    fullyRefunded: input.fullyRefunded,
+    lines: input.lines,
+    shopUrl: `${siteUrl}/tienda`,
+    homeUrl: siteUrl,
+  });
+
+  const resend = new Resend(apiKey);
+  const subject = input.fullyRefunded
+    ? `Pedido reembolsado · ${order.order_number} · Cleoh`
+    : `Reembolso parcial · ${order.order_number} · Cleoh`;
+
+  try {
+    const { error: sendError } = await resend.emails.send({
+      from,
+      to: [order.email],
+      ...(notify ? { bcc: [notify] } : {}),
+      subject,
+      html,
+    });
+
+    if (sendError) {
+      console.error("[email] Resend error (refund)", sendError);
+      return { sent: false as const, reason: "resend_error" as const };
+    }
+
+    return { sent: true as const };
+  } catch (e) {
+    console.error("[email] refund send failed", e);
     return { sent: false as const, reason: "send_failed" as const };
   }
 }
