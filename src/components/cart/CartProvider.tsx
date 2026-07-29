@@ -14,8 +14,10 @@ import {
   cartCount,
   cartItemKey,
   cartSubtotal,
+  readCartItems,
+  writeCartItems,
   type CartItem,
-} from "@/lib/cart/types";
+} from "@/lib/cart/storage";
 
 type AddInput = Omit<CartItem, "key" | "quantity"> & { quantity?: number };
 
@@ -34,63 +36,92 @@ type CartContextValue = {
 
 const CartContext = createContext<CartContextValue | null>(null);
 
+function mergeAddItem(base: CartItem[], input: AddInput): CartItem[] {
+  const key = cartItemKey(input.productId, input.size);
+  const qty = Math.max(1, input.quantity ?? 1);
+  const existing = base.find((i) => i.key === key);
+  if (existing) {
+    return base.map((i) =>
+      i.key === key ? { ...i, quantity: i.quantity + qty } : i,
+    );
+  }
+  return [...base, { ...input, key, quantity: qty }];
+}
+
 export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
   const [lastAddedAt, setLastAddedAt] = useState(0);
 
-  useEffect(() => {
-    queueMicrotask(() => {
-      try {
-        const raw = localStorage.getItem(CART_STORAGE_KEY);
-        if (raw) {
-          const parsed = JSON.parse(raw) as { items?: CartItem[] };
-          if (Array.isArray(parsed.items)) setItems(parsed.items);
-        }
-      } catch {
-        // ignore corrupt storage
-      }
-      setReady(true);
-    });
+  const syncFromStorage = useCallback(() => {
+    setItems(readCartItems());
   }, []);
 
   useEffect(() => {
-    if (!ready) return;
-    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify({ items }));
-  }, [items, ready]);
+    syncFromStorage();
+    setReady(true);
+  }, [syncFromStorage]);
 
-  const addItem = useCallback((input: AddInput) => {
-    const key = cartItemKey(input.productId, input.size);
-    const qty = Math.max(1, input.quantity ?? 1);
-    setItems((prev) => {
-      const existing = prev.find((i) => i.key === key);
-      if (existing) {
-        return prev.map((i) =>
-          i.key === key ? { ...i, quantity: i.quantity + qty } : i,
-        );
+  useEffect(() => {
+    const onStorage = (event: StorageEvent) => {
+      if (event.key !== null && event.key !== CART_STORAGE_KEY) return;
+      syncFromStorage();
+    };
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") {
+        syncFromStorage();
       }
-      return [...prev, { ...input, key, quantity: qty }];
-    });
+    };
+
+    window.addEventListener("storage", onStorage);
+    window.addEventListener("focus", syncFromStorage);
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      window.removeEventListener("storage", onStorage);
+      window.removeEventListener("focus", syncFromStorage);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [syncFromStorage]);
+
+  const commitItems = useCallback((next: CartItem[]) => {
+    writeCartItems(next);
+    setItems(next);
     setLastAddedAt(Date.now());
   }, []);
 
-  const setQuantity = useCallback((key: string, quantity: number) => {
-    setItems((prev) => {
-      if (quantity <= 0) return prev.filter((i) => i.key !== key);
-      return prev.map((i) => (i.key === key ? { ...i, quantity } : i));
-    });
-    setLastAddedAt(Date.now());
-  }, []);
+  const addItem = useCallback(
+    (input: AddInput) => {
+      const base = readCartItems();
+      commitItems(mergeAddItem(base, input));
+    },
+    [commitItems],
+  );
 
-  const removeItem = useCallback((key: string) => {
-    setItems((prev) => prev.filter((i) => i.key !== key));
-    setLastAddedAt(Date.now());
-  }, []);
+  const setQuantity = useCallback(
+    (key: string, quantity: number) => {
+      const base = readCartItems();
+      const next =
+        quantity <= 0
+          ? base.filter((i) => i.key !== key)
+          : base.map((i) => (i.key === key ? { ...i, quantity } : i));
+      commitItems(next);
+    },
+    [commitItems],
+  );
+
+  const removeItem = useCallback(
+    (key: string) => {
+      const base = readCartItems();
+      commitItems(base.filter((i) => i.key !== key));
+    },
+    [commitItems],
+  );
 
   const clear = useCallback(() => {
-    setItems([]);
-    setLastAddedAt(Date.now());
-  }, []);
+    commitItems([]);
+  }, [commitItems]);
 
   const value = useMemo(
     () => ({
