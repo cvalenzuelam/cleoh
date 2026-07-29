@@ -1,0 +1,53 @@
+---
+description: Design system Cleoh — tokens, tipografía, spacing y tono visual
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Design System — Cleoh
+
+E-commerce lencería, tono **elegante/editorial**, México. No usar estética genérica de IA ni mezclar con Bricia u otros clientes.
+
+## Tokens (fuente: `src/app/globals.css`)
+
+| Token | Valor | Uso |
+|-------|-------|-----|
+| `--cleoh-porcelain` | `#faf7f6` | Fondo principal |
+| `--cleoh-ink` | `#1a1416` | Texto principal |
+| `--cleoh-ink-soft` | `#3d3236` | Texto secundario |
+| `--cleoh-rose` / `--cleoh-accent` | `#8f5a66` | CTAs, acentos |
+| `--cleoh-blush` | `#c9a8ad` | Detalles suaves |
+| `--cleoh-petal` | `#f3eaeb` | Fondos alternos |
+| `--cleoh-mist` | `#ebe2e3` | Bordes / separadores |
+| `--cleoh-line` | `rgba(26,20,22,0.12)` | Líneas sutiles |
+
+Usar `var(--cleoh-*)` o clases `@theme` — **no hex sueltos** en componentes nuevos.
+
+## Tipografía
+
+- **Display:** Cormorant Garamond (`--font-display`) — títulos, hero, editorial
+- **Body:** Outfit (`--font-body`) — UI, párrafos, nav
+- Máximo estas 2 familias; body ≥ 16px
+
+## Spacing — grid 8px
+
+`4`, `8`, `16`, `24`, `32`, `48`, `64` — secciones `py-16 md:py-24`.
+
+## Tono visual
+
+Mucho whitespace, fotografía protagonista, paleta rosa/porcelana, serif display. Sensación boutique, no marketplace genérico.
+
+## Stack UI
+
+CSS custom + Tailwind 4 — **no shadcn** (sin migración planificada). Reutilizar patrones de `globals.css` y componentes existentes en `src/components/`.
+
+## Anti-patrones
+
+- Inter, gradientes púrpura, look "IA genérico"
+- Imponer componentes shadcn sin brief
+- Mezclar tokens de otros proyectos
+- Decir "listo" sin verificar en browser (375px)
+
+## Skills al diseñar/mejorar
+
+`frontend-design`, `web-design-guidelines`, `visual-qa-testing`, `typography`

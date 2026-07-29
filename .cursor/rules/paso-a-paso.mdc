@@ -1,0 +1,27 @@
+---
+description: Ir siempre paso a paso con el usuario; no adelantarse
+alwaysApply: true
+---
+
+# Paso a paso
+
+Con Chris (Cleoh) trabajar **un paso a la vez**.
+
+## Obligatorio
+
+- Dar **solo el siguiente paso** (o el bloque mínimo que acaba de pedir).
+- Esperar confirmación ("listo", captura, resultado) antes de seguir.
+- No listar de golpe "después harás X, Y, Z" salvo que lo pida.
+- No asumir que ya hizo pasos intermedios.
+- Si algo falla, corregir ese paso; no saltar al siguiente.
+
+## Comunicación
+
+- Instrucciones concretas y numeradas del paso actual.
+- Preguntar o esperar antes de avanzar.
+- Si manda captura, interpretar y decir **solo** qué clic/acción toca ahora.
+
+## Ejemplo
+
+- Mal: "Reinicia, compra, usa tarjeta de prueba, revisa admin…"
+- Bien: "Reinicia el server con `npm run dev` y avísame cuando esté arriba."

@@ -1,0 +1,47 @@
+---
+description: Copy y tono de voz — tú/usted, longitud, CTAs y microcopy
+alwaysApply: true
+---
+
+# Copy & Tono de voz (plantilla — personalizar por cliente)
+
+## Configuración por proyecto (editar)
+
+| Campo | Valor por defecto |
+|-------|-------------------|
+| Tratamiento | **tú** (informal México/LATAM) |
+| Tono | cercano, claro, sin corporativo frío |
+| Idioma | español (México) |
+| Longitud headlines | 6–12 palabras |
+| Longitud subheadlines | 15–25 palabras |
+| Longitud párrafos | máx. 3 líneas en mobile |
+
+## Principios
+
+1. **Claridad > ingenio** — el usuario entiende en 3 segundos
+2. **Beneficio > feature** — "Envío gratis desde $999" no "Logística optimizada"
+3. **Una idea por bloque** — hero, features, prueba social, CTA
+4. **Voz activa** — "Agrega al carrito" no "Será agregado"
+5. **Vocabulario consistente** — mismo verbo en botón, toast y confirmación
+
+## CTAs
+
+Buenos: "Ver colección", "Comprar ahora", "Pedir en la mesa", "Enviar mensaje"
+Malos: "Submit", "Click aquí", "Learn more" (como CTA principal)
+
+## Microcopy
+
+- Errores: qué pasó + cómo arreglarlo (sin "Ups!" genérico)
+- Vacíos: invitar a actuar ("Aún no hay recetas — explora la mesa")
+- Loading: "Cargando…" o skeleton, nunca pantalla en blanco
+- Formularios: labels visibles; placeholder solo como ejemplo
+
+## SEO en copy
+
+- Un `h1` claro por página con keyword natural
+- Meta description 120–160 caracteres, con beneficio
+- Alt text descriptivo en imágenes de producto/contenido
+
+## Skills a invocar
+
+`writing-copy`, `writing-guidelines`, skill `frontend-design` (sección de writing)

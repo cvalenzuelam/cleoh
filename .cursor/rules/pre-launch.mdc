@@ -1,0 +1,57 @@
+---
+description: Checklist pre-lanzamiento — responsive, a11y, SEO, links y performance
+alwaysApply: false
+---
+
+# Pre-launch checklist
+
+Ejecutar antes de deploy o entrega al cliente. Marcar cada ítem.
+
+## Responsive
+
+- [ ] 375px (iPhone SE), 768px (tablet), 1280px+ (desktop)
+- [ ] Sin scroll horizontal involuntario
+- [ ] Nav usable en móvil (menú, carrito, CTAs accesibles)
+- [ ] Imágenes no desbordan contenedor
+- [ ] Tipografía legible (body ≥ 16px)
+
+## Accesibilidad
+
+- [ ] Contraste texto ≥ 4.5:1 (cuerpo), ≥ 3:1 (grandes títulos)
+- [ ] Focus visible en links, botones, inputs
+- [ ] Imágenes con `alt` significativo
+- [ ] Formularios con `<label>` asociado
+- [ ] `prefers-reduced-motion` respetado
+- [ ] Navegación por teclado funcional
+
+## SEO
+
+- [ ] `<title>` y `meta description` únicos por página
+- [ ] Open Graph + Twitter cards en home y páginas clave
+- [ ] Un solo `h1` por página, jerarquía h2–h3 lógica
+- [ ] `robots.txt` / sitemap si aplica
+- [ ] URLs limpias y canonical si hay duplicados
+
+## Links y contenido
+
+- [ ] Sin links rotos (internos y externos importantes)
+- [ ] Favicon y apple-touch-icon
+- [ ] Páginas legales si hay checkout (privacidad, términos)
+- [ ] 404 personalizada
+
+## Performance
+
+- [ ] Imágenes WebP/AVIF + `sizes` correctos en Next/Image
+- [ ] LCP < 2.5s en mobile (objetivo)
+- [ ] Sin layout shift visible (CLS)
+- [ ] Fuentes con `display: swap`
+
+## Funcional (e-commerce / forms)
+
+- [ ] Checkout o formulario de contacto probado end-to-end
+- [ ] Emails de confirmación llegan
+- [ ] Analytics activo (Vercel Analytics mínimo)
+
+## Skills a invocar en revisión
+
+`visual-qa-testing`, `responsive-testing`, `accessibility-auditing`, `seo-auditing`, `fixing-broken-links`, `auditing-performance`, `web-design-guidelines`

@@ -1,0 +1,45 @@
+---
+description: Contexto global — Chris freelance, gates, v0/Lovable, skills, MCPs, Cleoh y Bricia
+alwaysApply: true
+---
+
+# Contexto de trabajo (Chris)
+
+Leer el documento maestro cuando haga falta contexto amplio:
+
+`C:\Users\Chris\Documents\web-design-template\CONTEXTO-TRABAJO.md`
+
+## Proyectos
+
+| Proyecto | Ruta | Notas |
+|----------|------|-------|
+| Cleoh | `Documents/Cleoh` | E-commerce lencería. Tokens `--cleoh-*`, Cormorant+Outfit. Paso a paso obligatorio. |
+| Bricia | `Documents/Web` | Marca/recetas/tienda. Stripe+MP. Deploy solo con autorización. |
+| Webs nuevas | Copiar `web-design-template` | shadcn + gates + v0/Lovable |
+
+## Forma de trabajar
+
+1. **Una cosa por mensaje** — esperar OK de Chris antes de la siguiente
+2. **Gates en webs nuevas:** brief (0) → dirección A/B (1) → hero (2) → sección a sección (3) → pre-launch + deploy (4)
+3. **v0/Lovable:** plan → una sección → browser 375px → reportar → esperar OK
+4. **Visual:** tokens de `design-system.mdc` + `globals.css`; verificar en browser antes de "listo"
+5. **Deploy:** solo si Chris dice "puedes subirlo" / "deploy"
+6. **Figma:** capturar web real con `generate_figma_design` desde localhost — no wireframes genéricos
+
+## Skills y docs (no memorizar)
+
+- Chuleta: `web-design-template/CHULETA-SKILLS.md`
+- Prompts: `web-design-template/GUIA-PROMPTS.md`
+- Plan fases: `web-design-template/PLAN-WEBS.md`
+- Skills en `~/.cursor/skills-cursor/` — el agente elige según la tarea
+
+## MCPs activos
+
+Browser, Figma, Vercel, Supabase, Cloudflare R2, Resend. GitHub vía `gh` (cvalenzuelam).
+
+## Cleoh vs Bricia vs cliente nuevo
+
+- **No mezclar** estilos entre proyectos
+- **Cleoh:** respetar CSS/tokens existentes; no imponer shadcn sin plan
+- **Bricia:** contenido + marca cálida; Framer Motion ya en stack
+- **Cliente nuevo:** plantilla shadcn + reglas personalizadas en Gate 0

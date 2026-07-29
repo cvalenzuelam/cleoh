@@ -1,0 +1,53 @@
+---
+description: Cómo el usuario da feedback visual (capturas señaladas) y cómo el agente responde
+alwaysApply: true
+---
+
+# Feedback visual del usuario
+
+## Cuando Chris manda captura señalada
+
+1. **Interpretar solo lo señalado** — no rediseñar la página entera
+2. **Confirmar en 1 frase** qué entendí: "El hero tiene mucho padding arriba"
+3. **Un cambio por iteración** — arreglar → verificar en browser → esperar OK
+4. Si la captura es ambigua, preguntar: "¿Te refieres al botón o al título?"
+
+## Formato ideal del mensaje de Chris
+
+```
+Proyecto: [Cleoh / Bricia / cliente]
+Página: [URL o ruta, ej. /checkout]
+Captura: [adjunta]
+
+Qué no me gusta: [1 cosa concreta]
+Quiero: [cómo debería verse o sentirse]
+No tocar: [opcional — resto de la página]
+```
+
+## Yo puedo tomar capturas yo mismo
+
+Cuando haga cambios visuales, **antes de decir "listo"**:
+
+1. Dev server corriendo
+2. Abrir la página en browser de Cursor (`visual-qa-testing`)
+3. Screenshot en 375px (móvil) como mínimo
+4. Comparar con lo pedido
+
+Si no tengo browser disponible, decirlo y pedir captura al usuario.
+
+## Tamaños a revisar siempre
+
+- 375px — móvil (prioridad)
+- 768px — tablet
+- 1280px — desktop
+
+## Vocabulario útil del usuario → acción
+
+| Chris dice | Acción |
+|------------|--------|
+| "muy apretado / muy junto" | subir gap/padding (grid 8px) |
+| "muy vacío / mucho aire" | bajar padding, revisar jerarquía |
+| "no se lee" | contraste, tamaño ≥16px, peso |
+| "se ve genérico / IA" | revisar tokens, tipografía display, frontend-design |
+| "botón no se nota" | contraste CTA, tamaño touch 44px |
+| "raro en móvil" | responsive-testing primero |

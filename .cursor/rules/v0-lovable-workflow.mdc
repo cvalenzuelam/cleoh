@@ -1,0 +1,66 @@
+---
+description: Flujo v0/Lovable — una sección por iteración, shadcn, browser tras cada bloque
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# Flujo v0 / Lovable
+
+Construir webs **sección por sección**, como v0 o Lovable. Nunca una página entera en un solo paso salvo que Chris lo pida explícito.
+
+## Ciclo por sección (repetir)
+
+1. **Plan** — 3–5 líneas: qué sección, layout, copy clave, componentes shadcn
+2. **Implementar** — solo ESA sección (hero, features, CTA, footer…)
+3. **Browser** — abrir localhost, screenshot 375px mínimo
+4. **Reportar** — "Sección X lista" + qué se ve + preguntar OK antes de la siguiente
+5. **Esperar** confirmación de Chris antes de la siguiente sección
+
+## Stack obligatorio en webs nuevas
+
+- Next.js App Router + TypeScript + Tailwind 4
+- **shadcn/ui** — usar `Button`, `Card`, `Input`, etc. antes de markup custom
+- Tokens en `globals.css` (`--primary`, `--background`, fuentes)
+- `@vercel/analytics` + `@vercel/speed-insights`
+
+## Componentes base (crear primero si no existen)
+
+| Componente | Uso |
+|------------|-----|
+| `SiteHeader` | nav + logo + CTA |
+| `SiteFooter` | links legales + redes |
+| `Section` | wrapper con padding consistente (`py-16 md:py-24`) |
+| `Container` | `max-w-6xl mx-auto px-4` |
+
+Luego secciones: `HeroSection`, `FeaturesSection`, `CtaSection`…
+
+## Orden típico de una landing
+
+1. Header/nav
+2. Hero
+3. Social proof o features
+4. Contenido principal (productos, servicios, about)
+5. CTA final
+6. Footer
+
+Una sección = un mensaje / una iteración con Chris.
+
+## shadcn — reglas rápidas
+
+- `npx shadcn@latest add [component]` antes de inventar UI
+- Colores semánticos: `bg-primary`, `text-muted-foreground`
+- Componer: Card + Button + Badge, no divs estilizados
+- Forms: FieldGroup + Field (ver skill shadcn)
+
+## Después de todas las secciones
+
+1. `pre-launch.mdc` checklist
+2. `web-design-guidelines` auditoría
+3. Deploy solo con "puedes subirlo" de Chris
+
+## Anti-patrones v0
+
+- Página completa en un commit/mensaje
+- CSS custom sin revisar si shadcn tiene el componente
+- Siguiente sección sin OK del usuario
+- "Listo" sin screenshot en browser

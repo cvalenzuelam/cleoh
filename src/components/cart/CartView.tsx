@@ -1,0 +1,158 @@
+"use client";
+
+import Image from "next/image";
+import Link from "next/link";
+import { useCart } from "@/components/cart/CartProvider";
+import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
+import { sizeLabel } from "@/lib/admin/products";
+import { formatCartMoney } from "@/lib/cart/types";
+import { productImage } from "@/lib/catalog/types";
+
+export function CartView() {
+  const { items, subtotal, ready, setQuantity, removeItem, count } = useCart();
+
+  if (!ready) {
+    return (
+      <div className="mx-auto max-w-3xl px-4 py-20 text-center text-sm text-ink-soft">
+        Cargando carrito…
+      </div>
+    );
+  }
+
+  if (items.length === 0) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 text-center sm:px-6 sm:py-20">
+        <h1 className="animate-fade-up font-display text-4xl tracking-wide text-ink">
+          Carrito
+        </h1>
+        <EmptyBagIllustration className="animate-fade-up-delay mx-auto mt-8 h-44 w-auto sm:h-52" />
+        <p className="animate-fade-up-delay-2 mt-6 text-sm text-ink-soft">
+          Tu carrito está vacío.
+        </p>
+        <p className="animate-fade-up-delay-2 mt-2 text-xs tracking-wide text-ink-soft/80">
+          Aún no hay piezas esperándote aquí.
+        </p>
+        <Link
+          href="/tienda"
+          className="btn btn-primary animate-fade-up-delay-2 mt-8"
+        >
+          Seguir comprando
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-12 sm:px-6 lg:px-8">
+      <header className="flex flex-wrap items-end justify-between gap-4 animate-fade-up">
+        <div>
+          <h1 className="font-display text-4xl tracking-wide text-ink">
+            Carrito
+          </h1>
+          <p className="mt-2 text-sm text-ink-soft">
+            {count} {count === 1 ? "artículo" : "artículos"}
+          </p>
+        </div>
+        <Link
+          href="/tienda"
+          className="link-anim text-[0.65rem] uppercase tracking-[0.18em] text-ink-soft"
+        >
+          Seguir comprando
+        </Link>
+      </header>
+
+      <div className="mt-10 grid gap-10 lg:grid-cols-[1fr_320px]">
+        <ul className="stagger-list divide-y divide-line border-y border-line">
+          {items.map((item) => (
+            <li
+              key={item.key}
+              className="flex gap-4 py-6 transition-colors duration-300 hover:bg-petal/40"
+            >
+              <Link
+                href={`/producto/${item.slug}`}
+                className="relative h-28 w-20 shrink-0 overflow-hidden bg-mist transition-transform duration-300 hover:scale-[1.02] sm:h-36 sm:w-28"
+              >
+                <Image
+                  src={productImage(item.image)}
+                  alt={item.name}
+                  fill
+                  sizes="112px"
+                  className="object-cover"
+                />
+              </Link>
+              <div className="flex min-w-0 flex-1 flex-col">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div>
+                    <Link
+                      href={`/producto/${item.slug}`}
+                      className="font-display text-xl tracking-wide text-ink transition-colors duration-300 hover:text-rose"
+                    >
+                      {item.name}
+                    </Link>
+                    <p className="mt-1 text-sm text-ink-soft">
+                      Talla {sizeLabel(item.size)}
+                    </p>
+                  </div>
+                  <p className="text-sm text-ink">
+                    {formatCartMoney(item.price * item.quantity)}
+                  </p>
+                </div>
+                <div className="mt-auto flex flex-wrap items-center gap-4 pt-4">
+                  <div className="qty-stepper">
+                    <button
+                      type="button"
+                      aria-label="Quitar uno"
+                      onClick={() => setQuantity(item.key, item.quantity - 1)}
+                    >
+                      −
+                    </button>
+                    <span className="min-w-8 px-2 text-center text-sm tabular-nums text-ink">
+                      {item.quantity}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label="Agregar uno"
+                      onClick={() =>
+                        setQuantity(item.key, Math.min(20, item.quantity + 1))
+                      }
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeItem(item.key)}
+                    className="link-anim text-xs uppercase tracking-[0.14em] text-ink-soft"
+                  >
+                    Quitar
+                  </button>
+                </div>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <aside className="h-fit border border-line bg-petal p-6 animate-fade-up-delay transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(26,20,22,0.06)]">
+          <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink">
+            Resumen
+          </p>
+          <div className="mt-4 flex justify-between text-sm">
+            <span className="text-ink-soft">Subtotal</span>
+            <span key={subtotal} className="animate-fade-up text-ink tabular-nums">
+              {formatCartMoney(subtotal)}
+            </span>
+          </div>
+          <p className="mt-2 text-xs text-ink-soft">
+            El envío se calcula en el checkout.
+          </p>
+          <Link
+            href="/checkout"
+            className="btn btn-primary btn-block mt-6 transition-transform duration-300 hover:-translate-y-0.5"
+          >
+            Ir al checkout
+          </Link>
+        </aside>
+      </div>
+    </div>
+  );
+}

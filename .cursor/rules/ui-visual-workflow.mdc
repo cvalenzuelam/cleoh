@@ -1,0 +1,61 @@
+---
+description: Flujo obligatorio para UI/UX — planear, usar tokens, verificar en browser antes de dar por hecho
+globs: "**/*.{tsx,css}"
+alwaysApply: false
+---
+
+# UI visual — flujo obligatorio
+
+El agente no "ve" la web sin abrirla. En trabajo visual, seguir este orden siempre.
+
+## Antes de escribir UI nueva
+
+1. Leer `globals.css` y `design-system.mdc` — usar **variables CSS**, no hex sueltos en componentes
+2. Escribir plan corto (5 líneas): paleta, tipos, layout, elemento signature, tono
+3. Si no hay brief visual, **preguntar** o proponer 2 direcciones — no asumir
+
+## Al implementar
+
+- Spacing: grid 8px (`4/8/16/24/32/48/64`)
+- Colores: `var(--…)` o clases `@theme`, nunca `#abc123` inline salvo excepción documentada
+- Tipografía: display solo en títulos; body ≥ 16px
+- Estados: hover + focus-visible en todo interactivo
+- Una sección/página por iteración cuando el usuario pida diseño
+
+## Después de cada cambio visual
+
+**No decir "listo" sin verificar:**
+
+1. Dev server arriba (`finding-dev-server-url`)
+2. Abrir en browser (`visual-qa-testing` o `verifying-in-browser`)
+3. Screenshot mental o real en **375px** mínimo
+4. Autocrítica: ¿parece genérico IA? ¿spacing inconsistente? ¿CTA claro?
+
+## Cuando el usuario manda captura
+
+- Arreglar **lo señalado**, no reescribir la página entera
+- Confirmar el fix en browser antes de cerrar
+
+## Auditoría vs implementación
+
+- "Revisa / audita" → solo informe (`design-audit` o `web-design-guidelines`), **sin código**
+- "Arregla / mejora" → aplicar cambios + verificar en browser
+
+## Anti-patrones (causa habitual de batalla visual)
+
+- Codear sin plan → layout genérico
+- Colores Tailwind random (`bg-gray-100`, `text-blue-600`) sin tokens de marca
+- Decir "debería verse bien" sin abrir el browser
+- Mezclar estilos de Cleoh/Bricia/clientes distintos
+- Inter + purple gradient / cream+terracotta por defecto
+
+## Skills visuales (el agente elige; no hace falta que el usuario los nombre)
+
+| Situación | Skill |
+|-----------|-------|
+| Diseñar página nueva | `frontend-design`, `bencium-innovative-ux-designer` |
+| Auditar sin tocar código | `design-audit`, `web-design-guidelines` |
+| Ver en browser | `visual-qa-testing`, `webapp-testing` |
+| Móvil | `responsive-testing` |
+| Tipografía | `typography` |
+| Paleta por sector | `ui-ux-pro-max` |
