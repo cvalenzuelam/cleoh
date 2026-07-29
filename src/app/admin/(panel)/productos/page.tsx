@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminProductThumbnail } from "@/components/admin/AdminProductThumbnail";
 import { SeedProductsButton } from "@/components/admin/SeedProductsButton";
-import { formatMxnFromCents } from "@/lib/admin/products";
+import { formatMxnFromCents, productThumbnailUrl } from "@/lib/admin/products";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminProductosPage() {
@@ -17,6 +18,8 @@ export default async function AdminProductosPage() {
       price_cents,
       badge,
       is_active,
+      primary_image_url,
+      product_images ( url, sort_order ),
       product_variants ( stock )
     `,
     )
@@ -25,7 +28,14 @@ export default async function AdminProductosPage() {
   const rows = (products ?? []).map((p) => {
     const variants = (p.product_variants ?? []) as { stock: number }[];
     const stock = variants.reduce((sum, v) => sum + (v.stock ?? 0), 0);
-    return { ...p, stock };
+    const thumbnail = productThumbnailUrl({
+      primary_image_url: p.primary_image_url,
+      product_images: (p.product_images ?? []) as {
+        url: string;
+        sort_order: number;
+      }[],
+    });
+    return { ...p, stock, thumbnail };
   });
 
   return (
@@ -76,12 +86,15 @@ export default async function AdminProductosPage() {
             ) : (
               rows.map((p) => (
                 <tr key={p.id} className="text-zinc-700 hover:bg-zinc-50">
-                  <td className="px-4 py-3 font-medium text-zinc-900">
+                  <td className="px-4 py-3">
                     <Link
                       href={`/admin/productos/${p.id}`}
-                      className="hover:underline"
+                      className="flex items-center gap-3 hover:underline"
                     >
-                      {p.name}
+                      <AdminProductThumbnail src={p.thumbnail} alt={p.name} />
+                      <span className="min-w-0 font-medium text-zinc-900">
+                        {p.name}
+                      </span>
                     </Link>
                   </td>
                   <td className="px-4 py-3 text-zinc-500">

@@ -110,3 +110,17 @@ export function formatMxnFromCents(cents: number) {
     minimumFractionDigits: 0,
   }).format(cents / 100);
 }
+
+export function productThumbnailUrl(input: {
+  primary_image_url?: string | null;
+  product_images?: { url: string; sort_order: number }[] | null;
+}): string | null {
+  const gallery = [...(input.product_images ?? [])]
+    .sort((a, b) => a.sort_order - b.sort_order)
+    .map((img) => img.url?.replace(/[\r\n\t]+/g, "").trim())
+    .filter((url): url is string => Boolean(url));
+
+  const primary = input.primary_image_url?.replace(/[\r\n\t]+/g, "").trim() || null;
+
+  return gallery[0] ?? primary ?? null;
+}

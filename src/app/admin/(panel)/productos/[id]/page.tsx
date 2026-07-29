@@ -1,7 +1,8 @@
 import { notFound } from "next/navigation";
+import { AdminProductThumbnail } from "@/components/admin/AdminProductThumbnail";
 import { DeleteProductButton } from "@/components/admin/DeleteProductButton";
 import { ProductForm } from "@/components/admin/ProductForm";
-import { centsToPesos, canonicalSize } from "@/lib/admin/products";
+import { centsToPesos, canonicalSize, productThumbnailUrl } from "@/lib/admin/products";
 import { createClient } from "@/lib/supabase/server";
 
 type Props = { params: Promise<{ id: string }> };
@@ -63,16 +64,31 @@ export default async function AdminEditProductoPage({ params }: Props) {
         ? [product.primary_image_url]
         : [];
 
+  const thumbnail = productThumbnailUrl({
+    primary_image_url: product.primary_image_url,
+    product_images: (product.product_images ?? []) as {
+      url: string;
+      sort_order: number;
+    }[],
+  });
+
   return (
     <>
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
-            {product.name}
-          </h1>
-          <p className="mt-1 text-sm text-zinc-500">
-            Editar datos, galería, etiqueta y stock por talla.
-          </p>
+        <div className="flex items-start gap-4">
+          <AdminProductThumbnail
+            src={thumbnail}
+            alt={product.name}
+            className="h-16 w-16 shrink-0 rounded-lg object-cover bg-zinc-100 ring-1 ring-zinc-200/80 sm:h-20 sm:w-20"
+          />
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight text-zinc-900">
+              {product.name}
+            </h1>
+            <p className="mt-1 text-sm text-zinc-500">
+              Editar datos, galería, etiqueta y stock por talla.
+            </p>
+          </div>
         </div>
         <DeleteProductButton productId={product.id} />
       </div>
