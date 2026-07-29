@@ -1,8 +1,24 @@
 import "server-only";
 
 import { Resend } from "resend";
-import { site } from "@/data/site";
 import { sizeDisplayName } from "@/lib/admin/products";
+import {
+  body,
+  display,
+  emailButton,
+  emailDivider,
+  emailFirstName,
+  emailGhostLink,
+  emailLayout,
+  emailOrderNumberBlock,
+  emailSectionLabel,
+  escapeHtml,
+  getEmailSiteUrl,
+  ink,
+  inkSoft,
+  mist,
+  rose,
+} from "@/lib/email/brand";
 import { formatOrderMoney } from "@/lib/orders/format";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -18,12 +34,43 @@ type Address = {
   methodName?: string;
 };
 
-function escapeHtml(value: string) {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+function buildAddressBlock(address: Address) {
+  const streetLine = [
+    address.street?.trim(),
+    address.exterior?.trim()
+      ? `No. ${address.exterior.trim()}`
+      : "",
+    address.interior?.trim()
+      ? `Int. ${address.interior.trim()}`
+      : "",
+  ]
+    .filter(Boolean)
+    .join(" ");
+
+  if (!address.street) {
+    return `<p style="margin:0;font-family:${body};font-size:14px;color:${inkSoft};">Sin dirección registrada.</p>`;
+  }
+
+  return `
+    <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
+      ${escapeHtml(streetLine)}
+    </p>
+    <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
+      ${escapeHtml(address.neighborhood ?? "")}
+    </p>
+    <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
+      ${escapeHtml(address.city ?? "")}, ${escapeHtml(address.state ?? "")} ${escapeHtml(address.postalCode ?? "")}
+    </p>
+    <p style="margin:0;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
+      ${escapeHtml(address.country || "México")}
+    </p>
+    ${
+      address.methodName
+        ? `<p style="margin:16px 0 0;font-family:${body};font-size:11px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:${rose};">
+            ${escapeHtml(address.methodName)}
+          </p>`
+        : ""
+    }`;
 }
 
 function buildOrderPaidHtml(input: {
@@ -43,27 +90,17 @@ function buildOrderPaidHtml(input: {
   address: Address;
   notes: string | null;
   shopUrl: string;
+  homeUrl: string;
 }) {
-  // Colores Cleoh (misma paleta que la tienda)
-  const ink = "#1a1416";
-  const inkSoft = "#3d3236";
-  const rose = "#8f5a66";
-  const blush = "#c9a8ad";
-  const petal = "#f3eaeb";
-  const porcelain = "#faf7f6";
-  const mist = "#ebe2e3";
-
-  // Fuentes de la web: Cormorant Garamond + Outfit
-  const display =
-    "'Cormorant Garamond',Georgia,'Times New Roman',serif";
-  const body = "'Outfit',Helvetica,Arial,sans-serif";
+  const firstName = emailFirstName(input.customerName);
+  const orderNumber = escapeHtml(input.orderNumber);
 
   const rows = input.items
     .map(
       (item) => `
       <tr>
-        <td style="padding:18px 0;border-bottom:1px solid ${mist};vertical-align:top;">
-          <p style="margin:0;font-family:${display};font-size:22px;font-weight:500;letter-spacing:0.02em;line-height:1.25;color:${ink};">
+        <td style="padding:16px 0;border-bottom:1px solid ${mist};vertical-align:top;">
+          <p style="margin:0;font-family:${display};font-size:21px;font-weight:500;letter-spacing:0.02em;line-height:1.25;color:${ink};">
             ${escapeHtml(item.product_name)}
           </p>
           <p style="margin:6px 0 0;font-family:${body};font-size:12px;font-weight:400;letter-spacing:0.06em;color:${rose};">
@@ -74,8 +111,8 @@ function buildOrderPaidHtml(input: {
             }× ${item.quantity}
           </p>
         </td>
-        <td style="padding:18px 0;border-bottom:1px solid ${mist};vertical-align:top;text-align:right;white-space:nowrap;">
-          <p style="margin:4px 0 0;font-family:${body};font-size:14px;font-weight:500;color:${ink};">
+        <td style="padding:16px 0;border-bottom:1px solid ${mist};vertical-align:top;text-align:right;white-space:nowrap;">
+          <p style="margin:0;font-family:${body};font-size:14px;font-weight:500;color:${ink};">
             ${formatOrderMoney(item.line_total_cents)}
           </p>
         </td>
@@ -83,209 +120,81 @@ function buildOrderPaidHtml(input: {
     )
     .join("");
 
-  const streetLine = [
-    input.address.street?.trim(),
-    input.address.exterior?.trim()
-      ? `No. ${input.address.exterior.trim()}`
-      : "",
-    input.address.interior?.trim()
-      ? `Int. ${input.address.interior.trim()}`
-      : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const addressBlock = input.address.street
-    ? `
-      <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
-        ${escapeHtml(streetLine)}
-      </p>
-      <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
-        ${escapeHtml(input.address.neighborhood ?? "")}
-      </p>
-      <p style="margin:0 0 4px;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
-        ${escapeHtml(input.address.city ?? "")}, ${escapeHtml(input.address.state ?? "")} ${escapeHtml(input.address.postalCode ?? "")}
-      </p>
-      <p style="margin:0;font-family:${body};font-size:14px;font-weight:400;line-height:1.65;color:${inkSoft};">
-        ${escapeHtml(input.address.country || "México")}
-      </p>
-      ${
-        input.address.methodName
-          ? `<p style="margin:16px 0 0;font-family:${body};font-size:11px;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;color:${rose};">
-              ${escapeHtml(input.address.methodName)}
-            </p>`
-          : ""
-      }`
-    : `<p style="margin:0;font-family:${body};font-size:14px;color:${inkSoft};">Sin dirección registrada.</p>`;
-
-  const firstName = escapeHtml(
-    (input.customerName || "hola").trim().split(/\s+/)[0] || "hola",
-  );
-  const orderNumber = escapeHtml(input.orderNumber);
-  const shopUrl = escapeHtml(input.shopUrl);
-
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light" />
-  <title>Pedido confirmado · Cleoh</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style type="text/css">
-    @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap");
-  </style>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td { font-family: Georgia, 'Times New Roman', serif !important; }
-  </style>
-  <![endif]-->
-</head>
-<body style="margin:0;padding:0;background:${porcelain};-webkit-font-smoothing:antialiased;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    Tu pedido ${orderNumber} en Cleoh está confirmado.
-  </div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${porcelain};">
+  const bodyContent = `
+    ${emailOrderNumberBlock(orderNumber)}
+    ${emailDivider()}
     <tr>
-      <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:${porcelain};">
-
-          <!-- Marca + hero (una sola composición) -->
+      <td style="padding:0 32px 8px;">
+        ${emailSectionLabel("Tu pedido")}
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+          ${rows}
+        </table>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:24px 32px 8px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
           <tr>
-            <td style="padding:48px 32px 36px;text-align:center;background-color:${petal};background-image:linear-gradient(165deg,${petal} 0%,${porcelain} 72%);">
-              <p style="margin:0;font-family:${display};font-size:32px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${ink};line-height:1.2;padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:10px 0 0;font-family:${body};font-size:11px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;color:${rose};">
-                ${escapeHtml(site.tagline)}
-              </p>
-              <h1 style="margin:28px 0 0;font-family:${display};font-size:44px;font-weight:500;letter-spacing:0.01em;line-height:1.1;color:${ink};">
-                ¡Gracias, ${firstName}!
-              </h1>
-              <p style="margin:16px auto 0;max-width:380px;font-family:${body};font-size:15px;font-weight:300;line-height:1.75;color:${inkSoft};">
-                Recibimos tu pago. Estamos preparando tu pedido con cuidado.
-              </p>
-            </td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Subtotal</td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">${formatOrderMoney(input.subtotalCents)}</td>
           </tr>
-
-          <!-- Pedido -->
-          <tr>
-            <td style="padding:36px 32px 8px;text-align:center;">
-              <p style="margin:0;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Pedido
-              </p>
-              <p style="margin:10px 0 0;font-family:${display};font-size:26px;font-weight:500;letter-spacing:0.06em;color:${ink};">
-                ${orderNumber}
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:8px 48px 28px;">
-              <div style="height:1px;background:${mist};line-height:1px;font-size:1px;">&nbsp;</div>
-            </td>
-          </tr>
-
-          <!-- Piezas -->
-          <tr>
-            <td style="padding:0 32px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                ${rows}
-              </table>
-            </td>
-          </tr>
-
-          <!-- Totales -->
-          <tr>
-            <td style="padding:24px 32px 8px;">
-              <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
-                <tr>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Subtotal</td>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">${formatOrderMoney(input.subtotalCents)}</td>
-                </tr>
-                ${
-                  input.discountCents > 0
-                    ? `<tr>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Descuento${
-                    input.couponCode
-                      ? ` · ${escapeHtml(input.couponCode)}`
-                      : ""
-                  }</td>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">-${formatOrderMoney(input.discountCents)}</td>
-                </tr>`
-                    : ""
-                }
-                <tr>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Envío</td>
-                  <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">${formatOrderMoney(input.shippingCents)}</td>
-                </tr>
-                <tr>
-                  <td style="padding:18px 0 0;font-family:${display};font-size:24px;font-weight:500;color:${ink};">Total</td>
-                  <td style="padding:18px 0 0;font-family:${display};font-size:24px;font-weight:500;text-align:right;color:${ink};">${formatOrderMoney(input.totalCents)}</td>
-                </tr>
-              </table>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 48px;">
-              <div style="height:1px;background:${mist};line-height:1px;font-size:1px;">&nbsp;</div>
-            </td>
-          </tr>
-
-          <!-- Envío -->
-          <tr>
-            <td style="padding:0 32px 8px;">
-              <p style="margin:0 0 14px;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Envío
-              </p>
-              ${addressBlock}
-            </td>
-          </tr>
-
           ${
-            input.notes
+            input.discountCents > 0
               ? `<tr>
-            <td style="padding:28px 32px 0;">
-              <p style="margin:0 0 10px;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Nota
-              </p>
-              <p style="margin:0;font-family:${body};font-size:14px;font-weight:300;line-height:1.7;color:${inkSoft};white-space:pre-wrap;">
-                ${escapeHtml(input.notes)}
-              </p>
-            </td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Descuento${
+              input.couponCode
+                ? ` · ${escapeHtml(input.couponCode)}`
+                : ""
+            }</td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">-${formatOrderMoney(input.discountCents)}</td>
           </tr>`
               : ""
           }
-
-          <!-- CTA -->
           <tr>
-            <td style="padding:40px 32px 48px;text-align:center;">
-              <a href="${shopUrl}" style="display:inline-block;padding:15px 32px;background:${ink};color:${porcelain};font-family:${body};font-size:11px;font-weight:500;letter-spacing:0.2em;text-decoration:none;text-transform:uppercase;">
-                Seguir comprando
-              </a>
-            </td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:300;color:${inkSoft};">Envío</td>
+            <td style="padding:6px 0;font-family:${body};font-size:13px;font-weight:400;text-align:right;color:${ink};">${formatOrderMoney(input.shippingCents)}</td>
           </tr>
-
-          <!-- Footer suave -->
           <tr>
-            <td style="padding:28px 32px 40px;text-align:center;border-top:1px solid ${mist};">
-              <p style="margin:0;font-family:${display};font-size:18px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${rose};padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:12px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};">
-                Con cariño,<br />el equipo Cleoh
-              </p>
-            </td>
+            <td style="padding:18px 0 0;font-family:${display};font-size:24px;font-weight:500;color:${ink};">Total</td>
+            <td style="padding:18px 0 0;font-family:${display};font-size:24px;font-weight:500;text-align:right;color:${ink};">${formatOrderMoney(input.totalCents)}</td>
           </tr>
         </table>
       </td>
     </tr>
-  </table>
-</body>
-</html>`;
+    ${emailDivider()}
+    <tr>
+      <td style="padding:0 32px 8px;">
+        ${emailSectionLabel("Envío")}
+        ${buildAddressBlock(input.address)}
+      </td>
+    </tr>
+    ${
+      input.notes
+        ? `<tr>
+      <td style="padding:24px 32px 0;">
+        ${emailSectionLabel("Nota")}
+        <p style="margin:0;font-family:${body};font-size:14px;font-weight:300;line-height:1.7;color:${inkSoft};white-space:pre-wrap;">
+          ${escapeHtml(input.notes)}
+        </p>
+      </td>
+    </tr>`
+        : ""
+    }
+    <tr>
+      <td style="padding:40px 32px 32px;text-align:center;">
+        ${emailButton(input.shopUrl, "Seguir comprando")}
+      </td>
+    </tr>`;
+
+  return emailLayout({
+    title: `Pedido confirmado · Cleoh`,
+    preheader: `Tu pedido ${input.orderNumber} en Cleoh está confirmado.`,
+    homeUrl: input.homeUrl,
+    heroHeadline: `¡Gracias, ${firstName}!`,
+    heroSubcopy:
+      "Recibimos tu pago. Estamos preparando tu pedido con el mismo cuidado con el que elegiste cada pieza.",
+    body: bodyContent,
+  });
 }
 
 function buildOrderShippedHtml(input: {
@@ -295,145 +204,53 @@ function buildOrderShippedHtml(input: {
   trackingUrl: string;
   methodName?: string;
   shopUrl: string;
+  homeUrl: string;
 }) {
-  const ink = "#1a1416";
-  const inkSoft = "#3d3236";
-  const rose = "#8f5a66";
-  const blush = "#c9a8ad";
-  const petal = "#f3eaeb";
-  const porcelain = "#faf7f6";
-  const mist = "#ebe2e3";
-  const display =
-    "'Cormorant Garamond',Georgia,'Times New Roman',serif";
-  const body = "'Outfit',Helvetica,Arial,sans-serif";
-
-  const firstName = escapeHtml(
-    (input.customerName || "hola").trim().split(/\s+/)[0] || "hola",
-  );
+  const firstName = emailFirstName(input.customerName);
   const orderNumber = escapeHtml(input.orderNumber);
   const trackingCode = escapeHtml(input.trackingCode);
   const trackingUrl = escapeHtml(input.trackingUrl);
-  const shopUrl = escapeHtml(input.shopUrl);
-  const methodName = input.methodName
-    ? escapeHtml(input.methodName)
-    : null;
+  const methodExtra = input.methodName
+    ? `<p style="margin:12px 0 0;font-family:${body};font-size:12px;font-weight:400;letter-spacing:0.08em;color:${rose};">
+        ${escapeHtml(input.methodName)}
+      </p>`
+    : "";
 
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light" />
-  <title>Tu pedido va en camino · Cleoh</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
-  <style type="text/css">
-    @import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Outfit:wght@300;400;500&display=swap");
-  </style>
-  <!--[if mso]>
-  <style type="text/css">
-    body, table, td { font-family: Georgia, 'Times New Roman', serif !important; }
-  </style>
-  <![endif]-->
-</head>
-<body style="margin:0;padding:0;background:${porcelain};-webkit-font-smoothing:antialiased;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    Tu pedido ${orderNumber} ya salió. Código de rastreo: ${trackingCode}.
-  </div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${porcelain};">
+  const bodyContent = `
+    ${emailOrderNumberBlock(orderNumber, methodExtra)}
+    ${emailDivider()}
     <tr>
-      <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:${porcelain};">
-
-          <tr>
-            <td style="padding:48px 32px 36px;text-align:center;background-color:${petal};background-image:linear-gradient(165deg,${petal} 0%,${porcelain} 72%);">
-              <p style="margin:0;font-family:${display};font-size:32px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${ink};line-height:1.2;padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:10px 0 0;font-family:${body};font-size:11px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;color:${rose};">
-                ${escapeHtml(site.tagline)}
-              </p>
-              <h1 style="margin:28px 0 0;font-family:${display};font-size:44px;font-weight:500;letter-spacing:0.01em;line-height:1.1;color:${ink};">
-                ¡Va en camino, ${firstName}!
-              </h1>
-              <p style="margin:16px auto 0;max-width:380px;font-family:${body};font-size:15px;font-weight:300;line-height:1.75;color:${inkSoft};">
-                Tu pedido ya salió. Aquí tienes los datos para seguirlo.
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:36px 32px 8px;text-align:center;">
-              <p style="margin:0;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Pedido
-              </p>
-              <p style="margin:10px 0 0;font-family:${display};font-size:26px;font-weight:500;letter-spacing:0.06em;color:${ink};">
-                ${orderNumber}
-              </p>
-              ${
-                methodName
-                  ? `<p style="margin:12px 0 0;font-family:${body};font-size:12px;font-weight:400;letter-spacing:0.08em;color:${rose};">
-                      ${methodName}
-                    </p>`
-                  : ""
-              }
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:8px 48px 28px;">
-              <div style="height:1px;background:${mist};line-height:1px;font-size:1px;">&nbsp;</div>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:0 32px 8px;text-align:center;">
-              <p style="margin:0 0 10px;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Código de rastreo
-              </p>
-              <p style="margin:0;font-family:${body};font-size:22px;font-weight:500;letter-spacing:0.08em;color:${ink};">
-                ${trackingCode}
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:32px 32px 48px;text-align:center;">
-              <a href="${trackingUrl}" style="display:inline-block;padding:15px 32px;background:${ink};color:${porcelain};font-family:${body};font-size:11px;font-weight:500;letter-spacing:0.2em;text-decoration:none;text-transform:uppercase;">
-                Rastrear envío
-              </a>
-              <p style="margin:20px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};word-break:break-all;">
-                O copia este enlace:<br />
-                <a href="${trackingUrl}" style="color:${rose};text-decoration:underline;">${trackingUrl}</a>
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:0 32px 40px;text-align:center;">
-              <a href="${shopUrl}" style="font-family:${body};font-size:12px;font-weight:400;letter-spacing:0.12em;text-transform:uppercase;color:${inkSoft};text-decoration:none;">
-                Visitar la tienda
-              </a>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 32px 40px;text-align:center;border-top:1px solid ${mist};">
-              <p style="margin:0;font-family:${display};font-size:18px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${rose};padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:12px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};">
-                Con cariño,<br />el equipo Cleoh
-              </p>
-            </td>
-          </tr>
-        </table>
+      <td style="padding:0 32px 8px;text-align:center;">
+        ${emailSectionLabel("Código de rastreo")}
+        <p style="margin:0;font-family:${body};font-size:22px;font-weight:500;letter-spacing:0.08em;color:${ink};">
+          ${trackingCode}
+        </p>
       </td>
     </tr>
-  </table>
-</body>
-</html>`;
+    <tr>
+      <td style="padding:32px 32px 16px;text-align:center;">
+        ${emailButton(input.trackingUrl, "Rastrear envío")}
+        <p style="margin:20px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};word-break:break-all;">
+          O copia este enlace:<br />
+          <a href="${trackingUrl}" style="color:${rose};text-decoration:underline;">${trackingUrl}</a>
+        </p>
+      </td>
+    </tr>
+    <tr>
+      <td style="padding:8px 32px 32px;text-align:center;">
+        ${emailGhostLink(input.shopUrl, "Visitar la tienda")}
+      </td>
+    </tr>`;
+
+  return emailLayout({
+    title: `Tu pedido va en camino · Cleoh`,
+    preheader: `Tu pedido ${input.orderNumber} ya salió. Código: ${input.trackingCode}.`,
+    homeUrl: input.homeUrl,
+    heroHeadline: `¡Va en camino, ${firstName}!`,
+    heroSubcopy:
+      "Tu pedido ya salió de nuestro almacén. Aquí tienes los datos para seguirlo paso a paso.",
+    body: bodyContent,
+  });
 }
 
 function buildOrderCancelledHtml(input: {
@@ -442,114 +259,35 @@ function buildOrderCancelledHtml(input: {
   totalCents: number;
   refunded: boolean;
   shopUrl: string;
+  homeUrl: string;
 }) {
-  const ink = "#1a1416";
-  const inkSoft = "#3d3236";
-  const rose = "#8f5a66";
-  const blush = "#c9a8ad";
-  const petal = "#f3eaeb";
-  const porcelain = "#faf7f6";
-  const mist = "#ebe2e3";
-  const display =
-    "'Cormorant Garamond',Georgia,'Times New Roman',serif";
-  const body = "'Outfit',Helvetica,Arial,sans-serif";
-
-  const firstName = escapeHtml(
-    (input.customerName || "hola").trim().split(/\s+/)[0] || "hola",
-  );
+  const firstName = emailFirstName(input.customerName);
   const orderNumber = escapeHtml(input.orderNumber);
-  const shopUrl = escapeHtml(input.shopUrl);
+  const refundNote = input.refunded
+    ? `<p style="margin:16px 0 0;font-family:${body};font-size:14px;font-weight:300;line-height:1.7;color:${inkSoft};">
+        El reembolso de ${formatOrderMoney(input.totalCents)} se procesará al mismo método de pago. Si no lo ves en unos días, revisa con tu banco o PayPal.
+      </p>`
+    : "";
 
-  return `<!DOCTYPE html>
-<html lang="es">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="color-scheme" content="light" />
-  <title>Pedido cancelado · Cleoh</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Outfit:wght@300;400;500&display=swap" rel="stylesheet" />
-</head>
-<body style="margin:0;padding:0;background:${porcelain};-webkit-font-smoothing:antialiased;">
-  <div style="display:none;max-height:0;overflow:hidden;opacity:0;">
-    Tu pedido ${orderNumber} fue cancelado${input.refunded ? " y reembolsado" : ""}.
-  </div>
-  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:${porcelain};">
+  const bodyContent = `
+    ${emailOrderNumberBlock(orderNumber, refundNote)}
+    ${emailDivider()}
     <tr>
-      <td align="center" style="padding:32px 16px;">
-        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;margin:0 auto;background:${porcelain};">
-
-          <tr>
-            <td style="padding:48px 32px 36px;text-align:center;background-color:${petal};background-image:linear-gradient(165deg,${petal} 0%,${porcelain} 72%);">
-              <p style="margin:0;font-family:${display};font-size:32px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${ink};line-height:1.2;padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:10px 0 0;font-family:${body};font-size:11px;font-weight:300;letter-spacing:0.2em;text-transform:uppercase;color:${rose};">
-                ${escapeHtml(site.tagline)}
-              </p>
-              <h1 style="margin:28px 0 0;font-family:${display};font-size:44px;font-weight:500;letter-spacing:0.01em;line-height:1.1;color:${ink};">
-                Pedido cancelado
-              </h1>
-              <p style="margin:16px auto 0;max-width:380px;font-family:${body};font-size:15px;font-weight:300;line-height:1.75;color:${inkSoft};">
-                Hola ${firstName}, tu pedido ${orderNumber} fue cancelado.
-                ${
-                  input.refunded
-                    ? ` El reembolso de ${formatOrderMoney(input.totalCents)} se procesará al mismo método de pago.`
-                    : ""
-                }
-              </p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:8px 48px 28px;">
-              <div style="height:1px;background:${mist};line-height:1px;font-size:1px;">&nbsp;</div>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:0 32px 8px;text-align:center;">
-              <p style="margin:0 0 10px;font-family:${body};font-size:10px;font-weight:500;letter-spacing:0.22em;text-transform:uppercase;color:${blush};">
-                Pedido
-              </p>
-              <p style="margin:0;font-family:${display};font-size:26px;font-weight:500;letter-spacing:0.06em;color:${ink};">
-                ${orderNumber}
-              </p>
-              ${
-                input.refunded
-                  ? `<p style="margin:16px 0 0;font-family:${body};font-size:14px;font-weight:300;line-height:1.7;color:${inkSoft};">
-                      Si no ves el reembolso en unos días, revisa con tu banco o PayPal.
-                    </p>`
-                  : ""
-              }
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:40px 32px 48px;text-align:center;">
-              <a href="${shopUrl}" style="display:inline-block;padding:15px 32px;background:${ink};color:${porcelain};font-family:${body};font-size:11px;font-weight:500;letter-spacing:0.2em;text-decoration:none;text-transform:uppercase;">
-                Visitar la tienda
-              </a>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:28px 32px 40px;text-align:center;border-top:1px solid ${mist};">
-              <p style="margin:0;font-family:${display};font-size:18px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${rose};padding-left:0.16em;">
-                CLEOH
-              </p>
-              <p style="margin:12px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};">
-                Con cariño,<br />el equipo Cleoh
-              </p>
-            </td>
-          </tr>
-        </table>
+      <td style="padding:8px 32px 32px;text-align:center;">
+        ${emailButton(input.shopUrl, "Visitar la tienda")}
       </td>
-    </tr>
-  </table>
-</body>
-</html>`;
+    </tr>`;
+
+  return emailLayout({
+    title: `Pedido cancelado · Cleoh`,
+    preheader: `Tu pedido ${input.orderNumber} fue cancelado${input.refunded ? " y reembolsado" : ""}.`,
+    homeUrl: input.homeUrl,
+    heroHeadline: "Pedido cancelado",
+    heroSubcopy: input.refunded
+      ? `Hola ${firstName}, cancelamos tu pedido ${input.orderNumber} y ya iniciamos el reembolso.`
+      : `Hola ${firstName}, tu pedido ${input.orderNumber} fue cancelado.`,
+    body: bodyContent,
+  });
 }
 
 export async function sendOrderPaidEmail(orderId: string) {
@@ -583,8 +321,7 @@ export async function sendOrderPaidEmail(orderId: string) {
     .select("product_name, variant_label, quantity, line_total_cents")
     .eq("order_id", order.id);
 
-  const shopUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || site.url;
+  const siteUrl = getEmailSiteUrl();
 
   const html = buildOrderPaidHtml({
     customerName: order.customer_name || "hola",
@@ -597,7 +334,8 @@ export async function sendOrderPaidEmail(orderId: string) {
     couponCode: order.coupon_code,
     address: (order.shipping_address ?? {}) as Address,
     notes: order.notes,
-    shopUrl: `${shopUrl}/tienda`,
+    shopUrl: `${siteUrl}/tienda`,
+    homeUrl: siteUrl,
   });
 
   const resend = new Resend(apiKey);
@@ -656,8 +394,7 @@ export async function sendOrderShippedEmail(orderId: string) {
   }
 
   const address = (order.shipping_address ?? {}) as Address;
-  const shopUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || site.url;
+  const siteUrl = getEmailSiteUrl();
 
   const html = buildOrderShippedHtml({
     customerName: order.customer_name || "hola",
@@ -665,7 +402,8 @@ export async function sendOrderShippedEmail(orderId: string) {
     trackingCode: order.tracking_code,
     trackingUrl: order.tracking_url,
     methodName: address.methodName,
-    shopUrl: `${shopUrl}/tienda`,
+    shopUrl: `${siteUrl}/tienda`,
+    homeUrl: siteUrl,
   });
 
   const resend = new Resend(apiKey);
@@ -716,15 +454,15 @@ export async function sendOrderCancelledEmail(orderId: string) {
     return { sent: false as const, reason: "order_missing" as const };
   }
 
-  const shopUrl =
-    process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") || site.url;
+  const siteUrl = getEmailSiteUrl();
 
   const html = buildOrderCancelledHtml({
     customerName: order.customer_name || "hola",
     orderNumber: order.order_number,
     totalCents: order.total_cents,
     refunded: order.status === "refunded",
-    shopUrl: `${shopUrl}/tienda`,
+    shopUrl: `${siteUrl}/tienda`,
+    homeUrl: siteUrl,
   });
 
   const resend = new Resend(apiKey);
