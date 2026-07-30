@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { IconTruck } from "@/components/admin/icons";
 import { formatMxnFromCents } from "@/lib/admin/products";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -21,6 +22,7 @@ export default async function AdminEnviosPage() {
         description="Métodos y tarifas que aparecen en el checkout."
         actionLabel="Nuevo método"
         actionHref="/admin/envios/nuevo"
+        icon={<IconTruck className="h-[18px] w-[18px]" />}
       />
 
       {error ? (

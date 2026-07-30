@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { IconLayers } from "@/components/admin/icons";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -20,6 +21,7 @@ export default async function AdminCategoriasPage() {
         description="Controlan el menú, los tiles del home y las páginas /categoria/…"
         actionHref="/admin/categorias/nuevo"
         actionLabel="Nueva categoría"
+        icon={<IconLayers className="h-[18px] w-[18px]" />}
       />
 
       {error ? (

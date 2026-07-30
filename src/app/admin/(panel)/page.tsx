@@ -2,6 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
+  IconGrid,
+  IconLayers,
+  IconReceipt,
+  IconTag,
+  IconTicket,
+} from "@/components/admin/icons";
+import {
   formatOrderMoney,
   orderStatusBadgeClass,
   orderStatusLabel,
@@ -88,24 +95,28 @@ export default async function AdminHomePage() {
           value: db.products,
           href: "/admin/productos",
           hint: "Activos en tienda",
+          icon: IconTag,
         },
         {
           label: "Pedidos abiertos",
           value: db.ordersOpen,
           href: "/admin/pedidos",
           hint: "Pendiente o pagado",
+          icon: IconReceipt,
         },
         {
           label: "Cupones activos",
           value: db.couponsActive,
           href: "/admin/cupones",
           hint: "Listos para checkout",
+          icon: IconTicket,
         },
         {
           label: "Categorías",
           value: db.categories,
           href: "/admin/categorias",
           hint: "Nav y catálogo",
+          icon: IconLayers,
         },
       ]
     : [];
@@ -115,6 +126,7 @@ export default async function AdminHomePage() {
       <AdminPageHeader
         title="Resumen"
         description="Panel Cleoh · catálogo, pedidos y pagos."
+        icon={<IconGrid className="h-[18px] w-[18px]" />}
       />
 
       <div
@@ -153,9 +165,12 @@ export default async function AdminHomePage() {
               href={card.href}
               className="group rounded-xl border border-zinc-200/90 bg-white p-5 shadow-[0_1px_0_rgba(24,24,27,0.04)] transition-all hover:-translate-y-0.5 hover:border-zinc-300 hover:shadow-sm"
             >
-              <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
-                {card.label}
-              </p>
+              <div className="flex items-center justify-between">
+                <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                  {card.label}
+                </p>
+                <card.icon className="h-4 w-4 shrink-0 text-zinc-300 transition-colors group-hover:text-zinc-500" />
+              </div>
               <p className="mt-3 text-3xl font-semibold tracking-tight tabular-nums text-zinc-900">
                 {card.value}
               </p>
@@ -169,13 +184,16 @@ export default async function AdminHomePage() {
 
       <section className="mt-10">
         <div className="mb-4 flex items-end justify-between gap-3">
-          <div>
-            <h2 className="text-base font-semibold tracking-tight text-zinc-900">
-              Pedidos recientes
-            </h2>
-            <p className="mt-0.5 text-xs text-zinc-500">
-              Últimos movimientos de la tienda
-            </p>
+          <div className="flex items-center gap-2.5">
+            <IconReceipt className="h-4 w-4 text-zinc-400" />
+            <div>
+              <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+                Pedidos recientes
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Últimos movimientos de la tienda
+              </p>
+            </div>
           </div>
           <Link
             href="/admin/pedidos"

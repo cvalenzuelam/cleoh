@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { IconTicket } from "@/components/admin/icons";
 import { formatOrderMoney } from "@/lib/orders/format";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -42,6 +43,7 @@ export default async function AdminCuponesPage() {
         description="Porcentaje o monto fijo. Se validan al pagar en checkout."
         actionHref="/admin/cupones/nuevo"
         actionLabel="Nuevo cupón"
+        icon={<IconTicket className="h-[18px] w-[18px]" />}
       />
 
       {error ? (

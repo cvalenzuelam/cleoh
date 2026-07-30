@@ -1,5 +1,6 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AparienciaForm } from "@/components/admin/AparienciaForm";
+import { IconImage } from "@/components/admin/icons";
 import {
   DEFAULT_HERO_IMAGE,
   getHeroImageUrl,
@@ -38,6 +39,7 @@ export default async function AdminAparienciaPage() {
       <AdminPageHeader
         title="Apariencia"
         description="Imagen y elementos visuales de la landing."
+        icon={<IconImage className="h-[18px] w-[18px]" />}
       />
 
       {tableMissing ? (

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import { AdminProductThumbnail } from "@/components/admin/AdminProductThumbnail";
+import { IconTag } from "@/components/admin/icons";
 import { SeedProductsButton } from "@/components/admin/SeedProductsButton";
 import { formatMxnFromCents, productThumbnailUrl } from "@/lib/admin/products";
 import { createClient } from "@/lib/supabase/server";
@@ -45,6 +46,7 @@ export default async function AdminProductosPage() {
         description="Catálogo, tallas y stock. Imágenes por URL por ahora; R2 después."
         actionHref="/admin/productos/nuevo"
         actionLabel="Nuevo producto"
+        icon={<IconTag className="h-[18px] w-[18px]" />}
       />
 
       {rows.length === 0 && (

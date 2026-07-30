@@ -1,6 +1,27 @@
 import Link from "next/link";
 import { logoutAdmin } from "@/app/admin/actions";
+import {
+  IconChartBar,
+  IconGrid,
+  IconImage,
+  IconLayers,
+  IconReceipt,
+  IconTag,
+  IconTicket,
+  IconTruck,
+} from "@/components/admin/icons";
 import { adminNav } from "@/data/admin";
+
+const NAV_ICONS: Record<string, (props: { className?: string }) => React.ReactElement> = {
+  "/admin": IconGrid,
+  "/admin/analiticas": IconChartBar,
+  "/admin/productos": IconTag,
+  "/admin/pedidos": IconReceipt,
+  "/admin/cupones": IconTicket,
+  "/admin/categorias": IconLayers,
+  "/admin/apariencia": IconImage,
+  "/admin/envios": IconTruck,
+};
 
 export function AdminSidebar() {
   return (
@@ -27,15 +48,19 @@ export function AdminSidebar() {
         </div>
       </div>
       <nav className="flex gap-1 overflow-x-auto px-2 pb-3 md:flex-col md:overflow-visible md:px-2 md:pb-6">
-        {adminNav.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className="whitespace-nowrap rounded-md px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
-          >
-            {item.label}
-          </Link>
-        ))}
+        {adminNav.map((item) => {
+          const Icon = NAV_ICONS[item.href];
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              className="flex items-center gap-2.5 whitespace-nowrap rounded-md px-3 py-2 text-sm text-zinc-300 transition-colors hover:bg-zinc-800 hover:text-white"
+            >
+              {Icon && <Icon className="h-4 w-4 shrink-0 text-zinc-400" />}
+              {item.label}
+            </Link>
+          );
+        })}
       </nav>
       <div className="mt-auto hidden space-y-3 px-4 pb-4 md:block">
         <form action={logoutAdmin}>

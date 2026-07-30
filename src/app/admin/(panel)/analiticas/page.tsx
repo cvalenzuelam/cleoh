@@ -1,4 +1,11 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import {
+  IconBanknote,
+  IconChartBar,
+  IconGlobe,
+  IconListChecks,
+  IconTrophy,
+} from "@/components/admin/icons";
 import { getStoreAnalytics } from "@/lib/admin/analytics";
 import { getWebTrafficAnalytics } from "@/lib/admin/web-analytics";
 import {
@@ -105,10 +112,12 @@ export default async function AdminAnalyticsPage() {
       <AdminPageHeader
         title="Analíticas"
         description="Tráfico web, ventas y productos más vendidos."
+        icon={<IconChartBar className="h-[18px] w-[18px]" />}
       />
 
       <section>
-        <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-zinc-900">
+          <IconGlobe className="h-4 w-4 text-zinc-400" />
           Tráfico web
         </h2>
         <p className="mt-0.5 text-xs text-zinc-500">
@@ -139,7 +148,7 @@ export default async function AdminAnalyticsPage() {
                 <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
                   Vistas por día · 7 días
                 </p>
-                <div className="mt-4 flex h-28 items-end gap-1.5 sm:gap-2">
+                <div className="mt-4 flex items-end gap-1.5 sm:gap-2">
                   {traffic.byDay.map((day) => {
                     const h = Math.max(
                       4,
@@ -151,10 +160,12 @@ export default async function AdminAnalyticsPage() {
                         className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
                         title={`${formatDayLabel(day.date)}: ${day.pageviews} vistas, ${day.visitors} visitantes`}
                       >
-                        <div
-                          className="w-full rounded-t-md bg-zinc-800/85 transition-colors hover:bg-zinc-900"
-                          style={{ height: `${h}%` }}
-                        />
+                        <div className="flex h-24 w-full items-end">
+                          <div
+                            className="w-full rounded-t-md bg-zinc-800/85 transition-colors hover:bg-zinc-900"
+                            style={{ height: `${h}%` }}
+                          />
+                        </div>
                         <span className="truncate text-[0.6rem] text-zinc-400">
                           {formatDayLabel(day.date)}
                         </span>
@@ -272,7 +283,8 @@ export default async function AdminAnalyticsPage() {
       </section>
 
       <section className="mt-12">
-        <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+        <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-zinc-900">
+          <IconBanknote className="h-4 w-4 text-zinc-400" />
           Ventas
         </h2>
         <p className="mt-0.5 text-xs text-zinc-500">
@@ -299,7 +311,8 @@ export default async function AdminAnalyticsPage() {
             </div>
 
             <section className="mt-10">
-              <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+              <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-zinc-900">
+                <IconListChecks className="h-4 w-4 text-zinc-400" />
                 Pedidos por estado
               </h2>
               <p className="mt-0.5 text-xs text-zinc-500">
@@ -322,7 +335,8 @@ export default async function AdminAnalyticsPage() {
 
             <section className="mt-10">
               <div className="mb-4">
-                <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+                <h2 className="flex items-center gap-2 text-base font-semibold tracking-tight text-zinc-900">
+                  <IconTrophy className="h-4 w-4 text-zinc-400" />
                   Top productos
                 </h2>
                 <p className="mt-0.5 text-xs text-zinc-500">

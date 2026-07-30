@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { IconReceipt } from "@/components/admin/icons";
 import {
   formatOrderMoney,
   orderStatusBadgeClass,
@@ -24,6 +25,7 @@ export default async function AdminPedidosPage() {
       <AdminPageHeader
         title="Pedidos"
         description="Estados: pending → paid → fulfilled. Actualizados por webhook de Mercado Pago."
+        icon={<IconReceipt className="h-[18px] w-[18px]" />}
       />
 
       {error ? (
