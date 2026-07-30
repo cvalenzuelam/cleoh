@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { SizeGuidePreview } from "@/components/product/SizeGuidePreview";
 import { sizeLabel, sortSizes } from "@/lib/admin/products";
 import { formatPrice } from "@/lib/catalog/types";
 
@@ -95,9 +96,7 @@ export function ProductPurchase({ product, sizes }: Props) {
             );
           })}
         </div>
-        <Link href="/guia-tallas" className="link-anim mt-3 text-xs text-rose">
-          Ver guía de tallas
-        </Link>
+        <SizeGuidePreview />
       </fieldset>
 
       <div className="mt-6">

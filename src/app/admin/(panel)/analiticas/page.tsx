@@ -35,49 +35,37 @@ export default async function AdminAnalyticsPage() {
     getWebTrafficAnalytics(),
   ]);
 
-  if (!salesResult.ok) {
-    return (
-      <>
-        <AdminPageHeader
-          title="Analíticas"
-          description="Ventas y tráfico de la tienda."
-        />
-        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
-          {salesResult.message}
-        </p>
-      </>
-    );
-  }
-
-  const { data } = salesResult;
+  const sales = salesResult.ok ? salesResult.data : null;
   const traffic = trafficResult.ok ? trafficResult.data : null;
   const maxDayViews = Math.max(
     1,
     ...(traffic?.byDay.map((d) => d.pageviews) ?? [0]),
   );
 
-  const revenueCards = [
-    {
-      label: "Ingresos totales",
-      value: formatOrderMoney(data.revenueAllCents),
-      hint: "Pedidos pagados y enviados",
-    },
-    {
-      label: "Últimos 7 días",
-      value: formatOrderMoney(data.revenue7dCents),
-      hint: "Ingresos recientes",
-    },
-    {
-      label: "Últimos 30 días",
-      value: formatOrderMoney(data.revenue30dCents),
-      hint: "Mes en curso aproximado",
-    },
-    {
-      label: "Ticket promedio",
-      value: formatOrderMoney(data.averageTicketCents),
-      hint: `${data.paidOrdersCount} pedido${data.paidOrdersCount === 1 ? "" : "s"} pagado${data.paidOrdersCount === 1 ? "" : "s"}`,
-    },
-  ];
+  const revenueCards = sales
+    ? [
+        {
+          label: "Ingresos totales",
+          value: formatOrderMoney(sales.revenueAllCents),
+          hint: "Pedidos pagados y enviados",
+        },
+        {
+          label: "Últimos 7 días",
+          value: formatOrderMoney(sales.revenue7dCents),
+          hint: "Ingresos recientes",
+        },
+        {
+          label: "Últimos 30 días",
+          value: formatOrderMoney(sales.revenue30dCents),
+          hint: "Mes en curso aproximado",
+        },
+        {
+          label: "Ticket promedio",
+          value: formatOrderMoney(sales.averageTicketCents),
+          hint: `${sales.paidOrdersCount} pedido${sales.paidOrdersCount === 1 ? "" : "s"} pagado${sales.paidOrdersCount === 1 ? "" : "s"}`,
+        },
+      ]
+    : [];
 
   const trafficCards = traffic
     ? [
@@ -104,7 +92,7 @@ export default async function AdminAnalyticsPage() {
       ]
     : [];
 
-  const statuses: { key: keyof typeof data.byStatus; label: string }[] = [
+  const statuses: { key: keyof NonNullable<typeof sales>["byStatus"]; label: string }[] = [
     { key: "pending", label: orderStatusLabel("pending") },
     { key: "paid", label: orderStatusLabel("paid") },
     { key: "fulfilled", label: orderStatusLabel("fulfilled") },
@@ -290,96 +278,107 @@ export default async function AdminAnalyticsPage() {
         <p className="mt-0.5 text-xs text-zinc-500">
           Ingresos de pedidos pagados y enviados
         </p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {revenueCards.map((card) => (
-            <div
-              key={card.label}
-              className="rounded-xl border border-zinc-200/90 bg-white p-5 shadow-[0_1px_0_rgba(24,24,27,0.04)]"
-            >
-              <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
-                {card.label}
-              </p>
-              <p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 sm:text-3xl">
-                {card.value}
-              </p>
-              <p className="mt-2 text-xs text-zinc-400">{card.hint}</p>
+
+        {sales ? (
+          <>
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {revenueCards.map((card) => (
+                <div
+                  key={card.label}
+                  className="rounded-xl border border-zinc-200/90 bg-white p-5 shadow-[0_1px_0_rgba(24,24,27,0.04)]"
+                >
+                  <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
+                    {card.label}
+                  </p>
+                  <p className="mt-3 text-2xl font-semibold tracking-tight tabular-nums text-zinc-900 sm:text-3xl">
+                    {card.value}
+                  </p>
+                  <p className="mt-2 text-xs text-zinc-400">{card.hint}</p>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </section>
 
-      <section className="mt-10">
-        <h2 className="text-base font-semibold tracking-tight text-zinc-900">
-          Pedidos por estado
-        </h2>
-        <p className="mt-0.5 text-xs text-zinc-500">
-          Conteo de todos los pedidos registrados
-        </p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {statuses.map(({ key, label }) => (
-            <span
-              key={key}
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-inset ${orderStatusBadgeClass(key)}`}
-            >
-              {label}
-              <span className="tabular-nums opacity-80">
-                {data.byStatus[key]}
-              </span>
-            </span>
-          ))}
-        </div>
-      </section>
+            <section className="mt-10">
+              <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+                Pedidos por estado
+              </h2>
+              <p className="mt-0.5 text-xs text-zinc-500">
+                Conteo de todos los pedidos registrados
+              </p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                {statuses.map(({ key, label }) => (
+                  <span
+                    key={key}
+                    className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-medium ring-1 ring-inset ${orderStatusBadgeClass(key)}`}
+                  >
+                    {label}
+                    <span className="tabular-nums opacity-80">
+                      {sales.byStatus[key]}
+                    </span>
+                  </span>
+                ))}
+              </div>
+            </section>
 
-      <section className="mt-10">
-        <div className="mb-4">
-          <h2 className="text-base font-semibold tracking-tight text-zinc-900">
-            Top productos
-          </h2>
-          <p className="mt-0.5 text-xs text-zinc-500">
-            Por unidades en pedidos pagados o enviados
+            <section className="mt-10">
+              <div className="mb-4">
+                <h2 className="text-base font-semibold tracking-tight text-zinc-900">
+                  Top productos
+                </h2>
+                <p className="mt-0.5 text-xs text-zinc-500">
+                  Por unidades en pedidos pagados o enviados
+                </p>
+              </div>
+
+              <div className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-[0_1px_0_rgba(24,24,27,0.04)]">
+                <table className="w-full text-left text-sm">
+                  <thead className="border-b border-zinc-100 bg-zinc-50/80 text-[0.65rem] uppercase tracking-[0.12em] text-zinc-500">
+                    <tr>
+                      <th className="px-4 py-3 font-medium">Producto</th>
+                      <th className="px-4 py-3 font-medium">Unidades</th>
+                      <th className="px-4 py-3 font-medium">Ingresos</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-zinc-100">
+                    {sales.topProducts.length > 0 ? (
+                      sales.topProducts.map((p) => (
+                        <tr
+                          key={p.name}
+                          className="transition-colors hover:bg-zinc-50/80"
+                        >
+                          <td className="px-4 py-3.5 font-medium text-zinc-900">
+                            {p.name}
+                          </td>
+                          <td className="px-4 py-3.5 tabular-nums text-zinc-800">
+                            {p.units}
+                          </td>
+                          <td className="px-4 py-3.5 tabular-nums text-zinc-800">
+                            {formatOrderMoney(p.revenueCents)}
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td
+                          colSpan={3}
+                          className="px-4 py-10 text-center text-sm text-zinc-400"
+                        >
+                          Aún no hay ventas registradas
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          </>
+        ) : (
+          <p className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            {!salesResult.ok
+              ? salesResult.message
+              : "No hay datos de ventas todavía."}
           </p>
-        </div>
-
-        <div className="overflow-hidden rounded-xl border border-zinc-200/90 bg-white shadow-[0_1px_0_rgba(24,24,27,0.04)]">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-zinc-100 bg-zinc-50/80 text-[0.65rem] uppercase tracking-[0.12em] text-zinc-500">
-              <tr>
-                <th className="px-4 py-3 font-medium">Producto</th>
-                <th className="px-4 py-3 font-medium">Unidades</th>
-                <th className="px-4 py-3 font-medium">Ingresos</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-zinc-100">
-              {data.topProducts.length > 0 ? (
-                data.topProducts.map((p) => (
-                  <tr
-                    key={p.name}
-                    className="transition-colors hover:bg-zinc-50/80"
-                  >
-                    <td className="px-4 py-3.5 font-medium text-zinc-900">
-                      {p.name}
-                    </td>
-                    <td className="px-4 py-3.5 tabular-nums text-zinc-800">
-                      {p.units}
-                    </td>
-                    <td className="px-4 py-3.5 tabular-nums text-zinc-800">
-                      {formatOrderMoney(p.revenueCents)}
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={3}
-                    className="px-4 py-10 text-center text-sm text-zinc-400"
-                  >
-                    Aún no hay ventas registradas
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        )}
       </section>
     </>
   );
