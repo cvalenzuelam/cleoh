@@ -1,3 +1,4 @@
+import { AnalyticsDayChart } from "@/components/admin/AnalyticsDayChart";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
   countryFlag,
@@ -50,10 +51,6 @@ export default async function AdminAnalyticsPage() {
 
   const sales = salesResult.ok ? salesResult.data : null;
   const traffic = trafficResult.ok ? trafficResult.data : null;
-  const maxDayViews = Math.max(
-    1,
-    ...(traffic?.byDay.map((d) => d.pageviews) ?? [0]),
-  );
 
   const revenueCards = sales
     ? [
@@ -150,35 +147,14 @@ export default async function AdminAnalyticsPage() {
             </div>
 
             {traffic.byDay.length > 0 && (
-              <div className="mt-6 rounded-xl border border-zinc-200/90 bg-white p-5 shadow-[0_1px_0_rgba(24,24,27,0.04)]">
+              <div className="mt-6 overflow-visible rounded-xl border border-zinc-200/90 bg-white p-5 shadow-[0_1px_0_rgba(24,24,27,0.04)]">
                 <p className="text-[0.7rem] font-medium uppercase tracking-[0.14em] text-zinc-500">
                   Vistas por día · 7 días
                 </p>
-                <div className="mt-4 flex items-end gap-1.5 sm:gap-2">
-                  {traffic.byDay.map((day) => {
-                    const h = Math.max(
-                      4,
-                      Math.round((day.pageviews / maxDayViews) * 100),
-                    );
-                    return (
-                      <div
-                        key={day.date}
-                        className="flex min-w-0 flex-1 flex-col items-center gap-1.5"
-                        title={`${formatDayLabel(day.date)}: ${day.pageviews} vistas, ${day.visitors} visitantes`}
-                      >
-                        <div className="flex h-24 w-full items-end">
-                          <div
-                            className="w-full rounded-t-md bg-zinc-800/85 transition-colors hover:bg-zinc-900"
-                            style={{ height: `${h}%` }}
-                          />
-                        </div>
-                        <span className="truncate text-[0.6rem] text-zinc-400">
-                          {formatDayLabel(day.date)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
+                <AnalyticsDayChart
+                  days={traffic.byDay}
+                  formatDayLabel={formatDayLabel}
+                />
               </div>
             )}
 
