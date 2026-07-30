@@ -1,6 +1,7 @@
 import "server-only";
 
 import { createServiceClient } from "@/lib/supabase/server";
+import { productThumbnailUrl } from "@/lib/admin/products";
 
 const PAID_STATUSES = ["paid", "fulfilled"] as const;
 
@@ -21,6 +22,7 @@ export type AnalyticsSnapshot = {
     name: string;
     units: number;
     revenueCents: number;
+    imageUrl: string | null;
   }[];
 };
 
@@ -140,9 +142,37 @@ export async function getStoreAnalytics(): Promise<
       productMap.set(name, cur);
     }
 
-    const topProducts = [...productMap.values()]
+    const topProductsBase = [...productMap.values()]
       .sort((a, b) => b.units - a.units || b.revenueCents - a.revenueCents)
       .slice(0, 10);
+
+    const topNames = topProductsBase.map((p) => p.name);
+    const imageByName = new Map<string, string | null>();
+
+    if (topNames.length > 0) {
+      const { data: productRows } = await supabase
+        .from("products")
+        .select("name, primary_image_url, product_images ( url, sort_order )")
+        .in("name", topNames);
+
+      for (const row of productRows ?? []) {
+        imageByName.set(
+          row.name,
+          productThumbnailUrl({
+            primary_image_url: row.primary_image_url,
+            product_images: (row.product_images ?? []) as {
+              url: string;
+              sort_order: number;
+            }[],
+          }),
+        );
+      }
+    }
+
+    const topProducts = topProductsBase.map((p) => ({
+      ...p,
+      imageUrl: imageByName.get(p.name) ?? null,
+    }));
 
     return {
       ok: true,

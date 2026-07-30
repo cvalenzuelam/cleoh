@@ -1,5 +1,11 @@
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 import {
+  countryFlag,
+  countryLabel,
+  DeviceIcon,
+} from "@/components/admin/AnalyticsMeta";
+import { AdminProductThumbnail } from "@/components/admin/AdminProductThumbnail";
+import {
   IconBanknote,
   IconChartBar,
   IconGlobe,
@@ -234,9 +240,10 @@ export default async function AdminAnalyticsPage() {
                       traffic.byDevice.map((d) => (
                         <li
                           key={d.device}
-                          className="flex items-center justify-between text-sm"
+                          className="flex items-center justify-between gap-3 text-sm"
                         >
-                          <span className="text-zinc-700">
+                          <span className="flex min-w-0 items-center gap-2 text-zinc-700">
+                            <DeviceIcon device={d.device} />
                             {DEVICE_LABELS[d.device] ?? d.device}
                           </span>
                           <span className="tabular-nums text-zinc-500">
@@ -257,9 +264,16 @@ export default async function AdminAnalyticsPage() {
                       traffic.byCountry.map((c) => (
                         <li
                           key={c.country}
-                          className="flex items-center justify-between text-sm"
+                          className="flex items-center justify-between gap-3 text-sm"
                         >
-                          <span className="text-zinc-700">{c.country}</span>
+                          <span className="flex min-w-0 items-center gap-2 text-zinc-700">
+                            <span className="text-base leading-none" aria-hidden>
+                              {countryFlag(c.country)}
+                            </span>
+                            <span className="truncate">
+                              {countryLabel(c.country)}
+                            </span>
+                          </span>
                           <span className="tabular-nums text-zinc-500">
                             {c.visitors}
                           </span>
@@ -360,8 +374,17 @@ export default async function AdminAnalyticsPage() {
                           key={p.name}
                           className="transition-colors hover:bg-zinc-50/80"
                         >
-                          <td className="px-4 py-3.5 font-medium text-zinc-900">
-                            {p.name}
+                          <td className="px-4 py-3.5">
+                            <div className="flex items-center gap-3">
+                              <AdminProductThumbnail
+                                src={p.imageUrl}
+                                alt={p.name}
+                                className="h-10 w-10 shrink-0 rounded-md object-cover bg-zinc-100 ring-1 ring-zinc-200/80"
+                              />
+                              <span className="font-medium text-zinc-900">
+                                {p.name}
+                              </span>
+                            </div>
                           </td>
                           <td className="px-4 py-3.5 tabular-nums text-zinc-800">
                             {p.units}

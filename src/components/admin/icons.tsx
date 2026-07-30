@@ -149,3 +149,41 @@ export function IconListChecks(props: IconProps) {
     </Svg>
   );
 }
+
+export function IconSmartphone(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="7" y="2.5" width="10" height="19" rx="2" />
+      <path d="M11 18.5h2" />
+    </Svg>
+  );
+}
+
+export function IconMonitor(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3" y="4" width="18" height="12" rx="1.5" />
+      <path d="M8 20h8" />
+      <path d="M12 16v4" />
+    </Svg>
+  );
+}
+
+export function IconTablet(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="5" y="3" width="14" height="18" rx="2" />
+      <path d="M10.5 18.5h3" />
+    </Svg>
+  );
+}
+
+export function IconDevice(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <path d="M9 9h6" />
+      <path d="M9 13h4" />
+    </Svg>
+  );
+}
