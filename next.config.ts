@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   images: {
+    /** Evita el optimizador de imágenes de Vercel (cuota gratuita de 5,000 transformaciones/mes se agota con tráfico real). Las imágenes ya vienen optimizadas desde Cloudinary antes de subirse a R2. */
+    unoptimized: true,
     remotePatterns: [
       {
         protocol: "https",
