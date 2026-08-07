@@ -10,6 +10,7 @@ declare global {
   }
 }
 
+// NEXT_PUBLIC_* debe leerse así para que Next.js lo inline en build time.
 const PIXEL_ID = process.env.NEXT_PUBLIC_META_PIXEL_ID;
 
 /**
