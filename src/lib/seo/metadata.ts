@@ -38,6 +38,13 @@ export const rootMetadata: Metadata = {
   alternates: {
     canonical: site.url,
   },
+  ...(process.env.GOOGLE_SITE_VERIFICATION
+    ? {
+        verification: {
+          google: process.env.GOOGLE_SITE_VERIFICATION,
+        },
+      }
+    : {}),
 };
 
 export function productMetadata(input: {
