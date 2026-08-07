@@ -1,6 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { cleanEnv } from "@/lib/env/clean";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -29,9 +30,7 @@ export async function updateSession(request: NextRequest) {
     },
   });
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser(supabase);
 
   const path = request.nextUrl.pathname;
   const isAdminRoute = path.startsWith("/admin");

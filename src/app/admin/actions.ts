@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 export type AuthState = { error?: string };
 
@@ -30,9 +31,7 @@ export async function loginAdmin(
     return { error: "Credenciales incorrectas o usuario inexistente." };
   }
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser(supabase);
 
   if (!user) {
     return { error: "No se pudo obtener la sesión." };

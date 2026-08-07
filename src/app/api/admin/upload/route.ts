@@ -5,6 +5,7 @@ import {
 } from "@/lib/cloudinary/enhance";
 import { r2Configured, uploadToR2 } from "@/lib/r2/client";
 import { createClient } from "@/lib/supabase/server";
+import { getSafeUser } from "@/lib/supabase/safe-user";
 
 const MAX_BYTES = 5 * 1024 * 1024; // 5 MB
 const ALLOWED = new Set([
@@ -16,9 +17,7 @@ const ALLOWED = new Set([
 
 async function requireAdmin() {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const user = await getSafeUser(supabase);
   if (!user) return null;
 
   const { data: profile } = await supabase
