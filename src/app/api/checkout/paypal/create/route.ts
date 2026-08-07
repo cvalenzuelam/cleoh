@@ -40,7 +40,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ message: "JSON inválido" }, { status: 400 });
   }
 
-  if (!body.email || !body.name || !body.items?.length) {
+  if (!body.email || !body.name || !body.phone?.trim() || !body.items?.length) {
     return NextResponse.json(
       { message: "Faltan datos del pedido." },
       { status: 400 },

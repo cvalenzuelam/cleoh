@@ -127,6 +127,12 @@ function getCheckoutIssue(f: CheckoutFormSnapshot) {
   if (!f.email.trim()) {
     return { message: "El email es obligatorio.", fieldId: "checkout-email" };
   }
+  if (!f.phone.trim()) {
+    return {
+      message: "El teléfono es obligatorio (lo pide la paquetería).",
+      fieldId: "checkout-phone",
+    };
+  }
   if (!f.street.trim()) {
     return { message: "La calle es obligatoria.", fieldId: "checkout-street" };
   }
@@ -793,15 +799,26 @@ export function CheckoutView({ shippingMethods }: Props) {
                   autoComplete="email"
                 />
               </FieldWrap>
-              <div>
-                <FieldLabel optional>Teléfono</FieldLabel>
+              <FieldWrap tipId="checkout-phone" tip={fieldTip}>
+                <FieldLabel required htmlFor="checkout-phone">
+                  Teléfono
+                </FieldLabel>
                 <input
+                  id="checkout-phone"
+                  required
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    setPhone(e.target.value);
+                    clearFieldTip("checkout-phone");
+                  }}
                   className="input-soft mt-1.5"
                   autoComplete="tel"
+                  inputMode="tel"
                 />
-              </div>
+                <p className="mt-1.5 text-xs text-ink-soft">
+                  La paquetería lo pide para coordinar la entrega.
+                </p>
+              </FieldWrap>
               <div className="sm:col-span-2">
                 <FieldLabel optional htmlFor="checkout-coupon">
                   Cupón
