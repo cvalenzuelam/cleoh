@@ -817,6 +817,10 @@ body {
   animation: chip-select 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.chip-low-stock:not(.chip-active):not(:disabled) {
+  border-color: color-mix(in srgb, var(--cleoh-rose) 45%, var(--cleoh-line));
+}
+
 /* Quantity stepper */
 .qty-stepper {
   display: inline-flex;

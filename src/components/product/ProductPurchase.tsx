@@ -5,6 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { SizeGuidePreview } from "@/components/product/SizeGuidePreview";
 import { sizeLabel, sortSizes } from "@/lib/admin/products";
+import { formatLowStockMessage, isLowStock } from "@/lib/catalog/stock";
 import { formatPrice } from "@/lib/catalog/types";
 
 type SizeOption = { size: string; stock: number };
@@ -36,6 +37,10 @@ export function ProductPurchase({ product, sizes }: Props) {
   const maxQty = Math.min(MAX_QTY, selected?.stock ?? 0);
   const quantityClamped = maxQty > 0 ? Math.min(quantity, maxQty) : quantity;
   const canAdd = Boolean(selected && selected.stock > 0 && quantityClamped >= 1);
+  const lowStockMessage =
+    selected && selected.stock > 0
+      ? formatLowStockMessage(selected.stock, sizeLabel(selected.size))
+      : null;
 
   useEffect(() => {
     return () => {
@@ -78,6 +83,7 @@ export function ProductPurchase({ product, sizes }: Props) {
           {ordered.map(({ size: s, stock }) => {
             const active = size === s;
             const disabled = stock <= 0;
+            const low = isLowStock(stock);
             return (
               <button
                 key={s}
@@ -88,14 +94,24 @@ export function ProductPurchase({ product, sizes }: Props) {
                   setMessage(null);
                   setQuantity(1);
                 }}
-                className={`chip ${active ? "chip-active" : ""}`}
+                className={`chip ${active ? "chip-active" : ""} ${
+                  low && !active ? "chip-low-stock" : ""
+                }`}
               >
                 {sizeLabel(s)}
-                {disabled ? " · agotado" : ""}
+                {disabled ? " · agotado" : low ? " · pocas" : ""}
               </button>
             );
           })}
         </div>
+        {lowStockMessage ? (
+          <p
+            className="mt-3 animate-fade-up text-xs leading-relaxed text-rose"
+            role="status"
+          >
+            {lowStockMessage}
+          </p>
+        ) : null}
         <SizeGuidePreview />
       </fieldset>
 
