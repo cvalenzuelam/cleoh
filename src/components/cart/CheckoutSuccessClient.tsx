@@ -53,15 +53,19 @@ export function CheckoutSuccessClient({
   useEffect(() => {
     const snapshot = takePurchaseSnapshot();
     if (snapshot) {
-      trackMetaEvent("Purchase", {
-        value: snapshot.value,
-        currency: snapshot.currency,
-        content_ids: snapshot.contentIds,
-        contents: snapshot.contents,
-        num_items: snapshot.numItems,
-        content_type: "product",
-        order_id: orderNumber,
-      });
+      trackMetaEvent(
+        "Purchase",
+        {
+          value: snapshot.value,
+          currency: snapshot.currency,
+          content_ids: snapshot.contentIds,
+          contents: snapshot.contents,
+          num_items: snapshot.numItems,
+          content_type: "product",
+          order_id: orderNumber,
+        },
+        orderNumber,
+      );
     }
     clear();
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar la página de éxito

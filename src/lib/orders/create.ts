@@ -1,5 +1,6 @@
 import "server-only";
 
+import { sendMetaPurchaseCapiEvent } from "@/lib/analytics/metaConversionsApi";
 import { sendOrderPaidEmail } from "@/lib/email/orders";
 import { getShippingMethodById } from "@/lib/shipping/methods";
 import type { ShippingAddress } from "@/lib/shipping/types";
@@ -265,7 +266,7 @@ export async function markOrderPaid(opts: {
 
   const { data: order } = await supabase
     .from("orders")
-    .select("id, status, coupon_id")
+    .select("id, order_number, status, coupon_id, email, phone, total_cents, currency")
     .eq("order_number", opts.orderNumber)
     .maybeSingle();
 
@@ -276,7 +277,7 @@ export async function markOrderPaid(opts: {
 
   const { data: items } = await supabase
     .from("order_items")
-    .select("variant_id, quantity")
+    .select("product_id, variant_id, quantity")
     .eq("order_id", order.id);
 
   // Descontar stock
@@ -323,6 +324,23 @@ export async function markOrderPaid(opts: {
     await sendOrderPaidEmail(order.id);
   } catch (e) {
     console.error("[email] markOrderPaid notify failed", e);
+  }
+
+  // Respaldo server-side del pixel: cubre casos donde el navegador nunca
+  // llegó a disparar el Purchase (adblock, cierre de pestaña, Safari ITP).
+  try {
+    await sendMetaPurchaseCapiEvent({
+      orderNumber: order.order_number,
+      email: order.email,
+      phone: order.phone,
+      valuePesos: order.total_cents / 100,
+      currency: order.currency ?? "MXN",
+      items: (items ?? [])
+        .filter((i) => i.product_id)
+        .map((i) => ({ id: i.product_id as string, quantity: i.quantity })),
+    });
+  } catch (e) {
+    console.error("[meta-capi] markOrderPaid notify failed", e);
   }
 
   return { ok: true as const, already: false };

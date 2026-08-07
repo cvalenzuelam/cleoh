@@ -19,9 +19,24 @@ function whenPixelReady(callback: () => void, attemptsLeft = 20) {
  * Envía un evento al Meta Pixel si está o llega a estar cargado (no-op si
  * el usuario tiene bloqueador de anuncios, no hay Pixel ID configurado, o
  * estamos en el servidor).
+ *
+ * `eventId` es opcional: cuando el mismo evento también se manda desde el
+ * servidor (Conversions API, p. ej. Purchase en `markOrderPaid`), pasar el
+ * mismo id en ambos lados (usamos el `order_number`) le permite a Meta
+ * deduplicar y no contar el evento dos veces.
  */
-export function trackMetaEvent(event: string, params?: Record<string, unknown>) {
-  whenPixelReady(() => window.fbq?.("track", event, params));
+export function trackMetaEvent(
+  event: string,
+  params?: Record<string, unknown>,
+  eventId?: string,
+) {
+  whenPixelReady(() => {
+    if (eventId) {
+      window.fbq?.("track", event, params, { eventID: eventId });
+    } else {
+      window.fbq?.("track", event, params);
+    }
+  });
 }
 
 const PURCHASE_SNAPSHOT_KEY = "cleoh-pixel-purchase-snapshot";
