@@ -1,6 +1,12 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Asegura que el catálogo SEPOMEX (usado para autocompletar el checkout)
+  // viaje en el bundle de la función serverless aunque el tracing automático
+  // no detecte el fs.readFileSync con path.join.
+  outputFileTracingIncludes: {
+    "/api/checkout/postal-code": ["./src/data/sepomex-cp.json.gz"],
+  },
   images: {
     /** Evita el optimizador de imágenes de Vercel (cuota gratuita de 5,000 transformaciones/mes se agota con tráfico real). Las imágenes ya vienen optimizadas desde Cloudinary antes de subirse a R2. */
     unoptimized: true,
