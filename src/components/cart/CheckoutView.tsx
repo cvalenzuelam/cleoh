@@ -285,7 +285,10 @@ export function CheckoutView({ shippingMethods }: Props) {
         }
         lastAutoFillRef.current = { cp, city: nextCity, state: nextState };
 
-        if (!customNeighborhood) {
+        // Se lee el ref (siempre al día) en vez del estado `customNeighborhood`:
+        // el estado puede quedar "stale" dentro de este closure si se acaba
+        // de resetear en esta misma ejecución del efecto (ver arriba).
+        if (customNeighborhoodCpRef.current === null) {
           if (colonias.length === 1) {
             setNeighborhood(colonias[0]);
           } else if (colonias.length > 1 && !colonias.includes(neighborhood)) {
