@@ -8,7 +8,7 @@ import fs from "fs";
 import { cleanEnvValue } from "./env-utils.mjs";
 
 const ENV_FILE = process.env.ENV_FILE || ".env.local";
-const BASE = process.env.SITE_URL || "https://cleoh.vercel.app";
+const BASE = process.env.SITE_URL || "https://lenceriacleoh.com";
 const env = Object.fromEntries(
   fs
     .readFileSync(ENV_FILE, "utf8")

@@ -13,8 +13,8 @@ Leer el documento maestro cuando haga falta contexto amplio:
 
 | Proyecto | Ruta | Notas |
 |----------|------|-------|
-| Cleoh | `Documents/Cleoh` | E-commerce lencería. Tokens `--cleoh-*`, Cormorant+Outfit. Paso a paso obligatorio. |
-| Bricia | `Documents/Web` | Marca/recetas/tienda. Stripe+MP. Deploy solo con autorización. |
+| Cleoh | `Documents/Proyectos/Cleoh` | E-commerce lencería. Tokens `--cleoh-*`, Cormorant+Outfit. Paso a paso obligatorio. |
+| Bricia | `Documents/Proyectos/Bricia` | Marca/recetas/tienda. Stripe+MP. Deploy solo con autorización. |
 | Webs nuevas | Copiar `web-design-template` | shadcn + gates + v0/Lovable |
 
 ## Forma de trabajar
