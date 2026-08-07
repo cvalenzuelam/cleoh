@@ -20,6 +20,7 @@ import {
   rose,
   blush,
 } from "@/lib/email/brand";
+import { getEmailConfig, getOrderNotifyEmail } from "@/lib/email/config";
 import { formatOrderMoney } from "@/lib/orders/format";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -374,11 +375,10 @@ function buildOrderCancelledHtml(input: {
 }
 
 export async function sendOrderPaidEmail(orderId: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  const notify = process.env.ORDER_NOTIFY_EMAIL?.trim();
+  const { apiKey, from, configured } = getEmailConfig();
+  const notify = getOrderNotifyEmail();
 
-  if (!apiKey || !from) {
+  if (!configured) {
     console.warn(
       "[email] Falta RESEND_API_KEY o EMAIL_FROM — se omite correo de pedido.",
     );
@@ -446,11 +446,10 @@ export async function sendOrderPaidEmail(orderId: string) {
 }
 
 export async function sendOrderShippedEmail(orderId: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  const notify = process.env.ORDER_NOTIFY_EMAIL?.trim();
+  const { apiKey, from, configured } = getEmailConfig();
+  const notify = getOrderNotifyEmail();
 
-  if (!apiKey || !from) {
+  if (!configured) {
     console.warn(
       "[email] Falta RESEND_API_KEY o EMAIL_FROM — se omite correo de envío.",
     );
@@ -525,11 +524,10 @@ export async function sendOrderRefundEmail(
     }[];
   },
 ) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  const notify = process.env.ORDER_NOTIFY_EMAIL?.trim();
+  const { apiKey, from, configured } = getEmailConfig();
+  const notify = getOrderNotifyEmail();
 
-  if (!apiKey || !from) {
+  if (!configured) {
     console.warn(
       "[email] Falta RESEND_API_KEY o EMAIL_FROM — se omite correo de reembolso.",
     );
@@ -587,11 +585,10 @@ export async function sendOrderRefundEmail(
 }
 
 export async function sendOrderCancelledEmail(orderId: string) {
-  const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
-  const notify = process.env.ORDER_NOTIFY_EMAIL?.trim();
+  const { apiKey, from, configured } = getEmailConfig();
+  const notify = getOrderNotifyEmail();
 
-  if (!apiKey || !from) {
+  if (!configured) {
     console.warn(
       "[email] Falta RESEND_API_KEY o EMAIL_FROM — se omite correo de cancelación.",
     );

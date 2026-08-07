@@ -103,6 +103,15 @@ export function IconTruck(props: IconProps) {
   );
 }
 
+export function IconMail(props: IconProps) {
+  return (
+    <Svg {...props}>
+      <rect x="3.5" y="5.5" width="17" height="13" rx="1.5" />
+      <path d="M3.5 7.5 12 13.5l8.5-6" />
+    </Svg>
+  );
+}
+
 export function IconTrophy(props: IconProps) {
   return (
     <Svg {...props}>

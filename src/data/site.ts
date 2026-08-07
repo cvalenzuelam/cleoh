@@ -11,10 +11,11 @@ export const site = {
     code: "CLEOH10",
     label: "10% de descuento",
   },
-  /** Mensajes del banner superior (rotan en la tienda) */
+  /** Mensajes del banner superior (rotan en la tienda). El cupón CLEOH10
+   *  vive en el widget de newsletter — no duplicar aquí. */
   announcements: [
     "Envíos gratis en compras mayores a $1,000",
-    "Código CLEOH10 — 10% de descuento",
+    "Envío a todo México con Estafeta y DHL",
   ],
   social: {
     instagram: "https://www.instagram.com/cleoh.mex/",

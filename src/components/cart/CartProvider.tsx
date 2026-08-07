@@ -33,6 +33,7 @@ type CartContextValue = {
   setQuantity: (key: string, quantity: number) => void;
   removeItem: (key: string) => void;
   clear: () => void;
+  restoreItems: (items: CartItem[]) => void;
 };
 
 const CartContext = createContext<CartContextValue | null>(null);
@@ -133,6 +134,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     commitItems([]);
   }, [commitItems]);
 
+  const restoreItems = useCallback(
+    (next: CartItem[]) => {
+      commitItems(next);
+    },
+    [commitItems],
+  );
+
   const value = useMemo(
     () => ({
       items,
@@ -144,8 +152,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       setQuantity,
       removeItem,
       clear,
+      restoreItems,
     }),
-    [items, ready, lastAddedAt, addItem, setQuantity, removeItem, clear],
+    [items, ready, lastAddedAt, addItem, setQuantity, removeItem, clear, restoreItems],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

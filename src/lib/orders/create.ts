@@ -1,6 +1,7 @@
 import "server-only";
 
 import { sendMetaPurchaseCapiEvent } from "@/lib/analytics/metaConversionsApi";
+import { markAbandonedCartRecovered } from "@/lib/cart/abandon";
 import { sendOrderPaidEmail } from "@/lib/email/orders";
 import { getShippingMethodById } from "@/lib/shipping/methods";
 import type { ShippingAddress } from "@/lib/shipping/types";
@@ -249,6 +250,12 @@ export async function createPendingOrder(input: {
   if (itemsError) {
     await supabase.from("orders").delete().eq("id", order.id);
     return { error: itemsError.message };
+  }
+
+  try {
+    await markAbandonedCartRecovered(input.email);
+  } catch (e) {
+    console.warn("[abandon] recover on order create failed", e);
   }
 
   return {

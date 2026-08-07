@@ -3,6 +3,8 @@ import { PageTransition } from "@/components/layout/PageTransition";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { CartProvider } from "@/components/cart/CartProvider";
+import { CartAbandonSync } from "@/components/cart/CartAbandonSync";
+import { NewsletterModal } from "@/components/newsletter/NewsletterModal";
 import { getNavCategories } from "@/lib/catalog/queries";
 
 export default async function StoreLayout({
@@ -22,6 +24,8 @@ export default async function StoreLayout({
           <PageTransition>{children}</PageTransition>
         </main>
         <SiteFooter navLinks={navLinks} />
+        <CartAbandonSync />
+        <NewsletterModal />
       </div>
     </CartProvider>
   );

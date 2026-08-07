@@ -31,6 +31,11 @@ export const adminNav: AdminNavItem[] = [
     description: "Descuentos y códigos",
   },
   {
+    href: "/admin/newsletter",
+    label: "Newsletter",
+    description: "Emails capturados del popup",
+  },
+  {
     href: "/admin/categorias",
     label: "Categorías",
     description: "Nav y tiles del home",

@@ -17,6 +17,10 @@ import { PayPalCheckoutButtons } from "@/components/cart/PayPalCheckoutButtons";
 import { MX_STATES } from "@/data/mexico";
 import { savePurchaseSnapshot, trackMetaEvent } from "@/lib/analytics/metaPixel";
 import { sizeDisplayName } from "@/lib/admin/products";
+import {
+  saveCheckoutEmail,
+  scheduleAbandonedCartSync,
+} from "@/lib/cart/abandon-client";
 import { formatCartMoney } from "@/lib/cart/types";
 import type { ShippingMethodPublic } from "@/lib/shipping/types";
 
@@ -343,6 +347,14 @@ export function CheckoutView({ shippingMethods }: Props) {
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe evaluarse al montar con carrito listo
   }, [ready, items.length]);
+
+  useEffect(() => {
+    if (!ready || !items.length) return;
+    const normalized = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized)) return;
+    saveCheckoutEmail(normalized);
+    scheduleAbandonedCartSync(normalized, items);
+  }, [ready, email, items]);
 
   // Si cambia el carrito, revalida el cupón aplicado
   useEffect(() => {

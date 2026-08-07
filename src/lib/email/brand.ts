@@ -27,8 +27,14 @@ export function getEmailSiteUrl() {
   );
 }
 
-export function emailLogoUrl() {
-  return `${getEmailSiteUrl()}/email/cleoh-logo.svg`;
+/** Wordmark as HTML — email clients block SVG in img tags; typographic logo matches the site header. */
+export function emailWordmark(size: "hero" | "footer" = "hero") {
+  const styles =
+    size === "hero"
+      ? `font-family:${display};font-size:28px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${ink};line-height:1;`
+      : `font-family:${display};font-size:20px;font-weight:400;letter-spacing:0.14em;text-transform:uppercase;color:${ink};line-height:1;opacity:0.85;`;
+
+  return `<span style="display:inline-block;${styles}">CLEOH</span>`;
 }
 
 export function escapeHtml(value: string) {
@@ -65,26 +71,14 @@ function emailHead(title: string) {
 </head>`;
 }
 
-/** Logo image + wordmark fallback for clients that block images */
+/** Typographic wordmark linked to the store home — reliable across all email clients. */
 export function emailLogoBlock(homeUrl: string) {
-  const logoUrl = escapeHtml(emailLogoUrl());
   const safeHome = escapeHtml(homeUrl);
 
   return `
     <a href="${safeHome}" style="text-decoration:none;display:inline-block;">
-      <img
-        src="${logoUrl}"
-        width="140"
-        height="32"
-        alt="Cleoh"
-        style="display:block;margin:0 auto;border:0;outline:none;text-decoration:none;max-width:140px;height:auto;"
-      />
-    </a>
-    <!--[if mso]>
-    <p style="margin:0;font-family:${display};font-size:28px;font-weight:400;letter-spacing:0.16em;text-transform:uppercase;color:${ink};text-align:center;">
-      CLEOH
-    </p>
-    <![endif]-->`;
+      ${emailWordmark("hero")}
+    </a>`;
 }
 
 export function emailTagline() {
@@ -162,13 +156,7 @@ export function emailFooter(homeUrl: string) {
     <tr>
       <td style="padding:32px 32px 40px;text-align:center;border-top:1px solid ${mist};background:${porcelain};">
         <a href="${safeHome}" style="text-decoration:none;display:inline-block;">
-          <img
-            src="${escapeHtml(emailLogoUrl())}"
-            width="96"
-            height="22"
-            alt="Cleoh"
-            style="display:block;margin:0 auto;border:0;outline:none;opacity:0.85;"
-          />
+          ${emailWordmark("footer")}
         </a>
         <p style="margin:16px 0 0;font-family:${body};font-size:12px;font-weight:300;line-height:1.7;color:${inkSoft};">
           Con cariño,<br />el equipo Cleoh
