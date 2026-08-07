@@ -36,6 +36,13 @@ Project → **Settings → Environment Variables** (Production + Preview si quie
 | `VERCEL_TOKEN` | Token **personal** (`vcp_…`) para tráfico en `/admin/analiticas`. [Crear aquí](https://vercel.com/account/tokens). No uses tokens `vca_` de Sign in with Vercel. |
 | `VERCEL_PROJECT_ID` | `prj_3jV3lCl9BBojqiFMCp72i9kdpBMJ` (proyecto cleoh) |
 | `VERCEL_TEAM_ID` | `team_Fe3Ld4xrAgFma4ZNRHycwgUM` |
+| `WHATSAPP_ACCESS_TOKEN` | Token permanente Cloud API (ver `docs/WHATSAPP.md`) |
+| `WHATSAPP_PHONE_NUMBER_ID` | ID del número en Meta |
+| `WHATSAPP_VERIFY_TOKEN` | String que tú eliges al registrar el webhook |
+| `WHATSAPP_APP_SECRET` | App Secret de Meta (firma del webhook) |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | `52XXXXXXXXXX` para botón wa.me (sin `+`) |
+
+Webhook callback: `https://lenceriacleoh.com/api/webhooks/whatsapp`
 
 Después del primer deploy, actualiza `NEXT_PUBLIC_SITE_URL` con la URL real y **redeploy** (webhooks MP y links de correo lo usan).
 

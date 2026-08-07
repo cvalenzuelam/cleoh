@@ -4,6 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
+import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { sizeLabel } from "@/lib/admin/products";
 import { formatCartMoney } from "@/lib/cart/types";
 import { productImage } from "@/lib/catalog/types";
@@ -132,25 +133,28 @@ export function CartView() {
           ))}
         </ul>
 
-        <aside className="h-fit border border-line bg-petal p-6 animate-fade-up-delay transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(26,20,22,0.06)]">
-          <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink">
-            Resumen
-          </p>
-          <div className="mt-4 flex justify-between text-sm">
-            <span className="text-ink-soft">Subtotal</span>
-            <span key={subtotal} className="animate-fade-up text-ink tabular-nums">
-              {formatCartMoney(subtotal)}
-            </span>
+        <aside className="h-fit space-y-4 animate-fade-up-delay">
+          <FreeShippingProgress subtotal={subtotal} variant="cart" />
+          <div className="border border-line bg-petal p-6 transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(26,20,22,0.06)]">
+            <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink">
+              Resumen
+            </p>
+            <div className="mt-4 flex justify-between text-sm">
+              <span className="text-ink-soft">Subtotal</span>
+              <span key={subtotal} className="animate-fade-up text-ink tabular-nums">
+                {formatCartMoney(subtotal)}
+              </span>
+            </div>
+            <p className="mt-2 text-xs text-ink-soft">
+              El envío se calcula en el checkout.
+            </p>
+            <Link
+              href="/checkout"
+              className="btn btn-primary btn-block mt-6 transition-transform duration-300 hover:-translate-y-0.5"
+            >
+              Ir al checkout
+            </Link>
           </div>
-          <p className="mt-2 text-xs text-ink-soft">
-            El envío se calcula en el checkout.
-          </p>
-          <Link
-            href="/checkout"
-            className="btn btn-primary btn-block mt-6 transition-transform duration-300 hover:-translate-y-0.5"
-          >
-            Ir al checkout
-          </Link>
         </aside>
       </div>
     </div>

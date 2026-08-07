@@ -12,6 +12,7 @@ import {
 } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
+import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { MercadoPagoWalletBrick } from "@/components/cart/MercadoPagoWalletBrick";
 import { PayPalCheckoutButtons } from "@/components/cart/PayPalCheckoutButtons";
 import { MX_STATES } from "@/data/mexico";
@@ -1230,6 +1231,7 @@ export function CheckoutView({ shippingMethods }: Props) {
         </div>
 
         <aside className="lg:sticky lg:top-8 space-y-4">
+          <FreeShippingProgress subtotal={subtotal} variant="checkout" />
           <div className="animate-fade-up-delay border border-line bg-white/40 p-6 backdrop-blur-sm transition-shadow duration-300 hover:shadow-[0_12px_40px_rgba(26,20,22,0.06)]">
             <p className="text-[0.65rem] uppercase tracking-[0.2em] text-ink-soft">
               Tu pedido

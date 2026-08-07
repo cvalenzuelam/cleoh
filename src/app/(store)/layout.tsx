@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { CartProvider } from "@/components/cart/CartProvider";
 import { CartAbandonSync } from "@/components/cart/CartAbandonSync";
 import { NewsletterModal } from "@/components/newsletter/NewsletterModal";
+import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { getNavCategories } from "@/lib/catalog/queries";
 
 export default async function StoreLayout({
@@ -26,6 +27,7 @@ export default async function StoreLayout({
         <SiteFooter navLinks={navLinks} />
         <CartAbandonSync />
         <NewsletterModal />
+        <WhatsAppButton />
       </div>
     </CartProvider>
   );
