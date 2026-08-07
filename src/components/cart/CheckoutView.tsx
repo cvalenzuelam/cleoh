@@ -15,6 +15,7 @@ import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
 import { MercadoPagoWalletBrick } from "@/components/cart/MercadoPagoWalletBrick";
 import { PayPalCheckoutButtons } from "@/components/cart/PayPalCheckoutButtons";
 import { MX_STATES } from "@/data/mexico";
+import { savePurchaseSnapshot, trackMetaEvent } from "@/lib/analytics/metaPixel";
 import { sizeDisplayName } from "@/lib/admin/products";
 import { formatCartMoney } from "@/lib/cart/types";
 import type { ShippingMethodPublic } from "@/lib/shipping/types";
@@ -135,6 +136,12 @@ function getCheckoutIssue(f: CheckoutFormSnapshot) {
       fieldId: "checkout-exterior",
     };
   }
+  if (!f.postalCode.trim()) {
+    return {
+      message: "El código postal es obligatorio.",
+      fieldId: "checkout-postal",
+    };
+  }
   if (!f.neighborhood.trim()) {
     return {
       message: "La colonia es obligatoria.",
@@ -143,12 +150,6 @@ function getCheckoutIssue(f: CheckoutFormSnapshot) {
   }
   if (!f.city.trim()) {
     return { message: "La ciudad es obligatoria.", fieldId: "checkout-city" };
-  }
-  if (!f.postalCode.trim()) {
-    return {
-      message: "El código postal es obligatorio.",
-      fieldId: "checkout-postal",
-    };
   }
   if (!f.stateMx.trim()) {
     return { message: "El estado es obligatorio.", fieldId: "checkout-state" };
@@ -204,6 +205,108 @@ export function CheckoutView({ shippingMethods }: Props) {
     shippingMethods[0]?.id ?? "",
   );
 
+  const [postalStatus, setPostalStatus] = useState<
+    "idle" | "loading" | "found" | "not-found"
+  >("idle");
+  const [postalColonias, setPostalColonias] = useState<string[]>([]);
+  const [customNeighborhood, setCustomNeighborhood] = useState(false);
+  // CP para el que el usuario eligió explícitamente "mi colonia no aparece".
+  // Si luego escribe un CP distinto, se vuelve a mostrar la lista: el modo
+  // manual no debe quedar pegado para siempre.
+  const customNeighborhoodCpRef = useRef<string | null>(null);
+  const lastAutoFillRef = useRef<{
+    cp: string;
+    city: string;
+    state: string;
+  } | null>(null);
+
+  // Autocompleta colonia/ciudad/estado a partir del código postal usando el
+  // catálogo SEPOMEX local (sin depender de APIs externas). No bloquea el
+  // pago si falla o no encuentra el CP: el cliente siempre puede seguir
+  // llenando los campos a mano.
+  useEffect(() => {
+    const cp = postalCode.trim();
+    if (!/^\d{5}$/.test(cp)) {
+      setPostalStatus("idle");
+      setPostalColonias([]);
+      return;
+    }
+
+    // Si el modo manual se activó para OTRO código postal, se resetea: este
+    // CP nuevo merece su propia oportunidad de mostrar la lista.
+    if (
+      customNeighborhoodCpRef.current !== null &&
+      customNeighborhoodCpRef.current !== cp
+    ) {
+      customNeighborhoodCpRef.current = null;
+      setCustomNeighborhood(false);
+    }
+
+    let cancelled = false;
+    setPostalStatus("loading");
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(
+          `/api/checkout/postal-code?cp=${encodeURIComponent(cp)}`,
+        );
+        if (cancelled) return;
+
+        if (!res.ok) {
+          setPostalStatus("not-found");
+          setPostalColonias([]);
+          return;
+        }
+
+        const data = (await res.json()) as {
+          estado?: string;
+          municipio?: string;
+          ciudad?: string;
+          colonias?: string[];
+        };
+
+        setPostalStatus("found");
+        const colonias = data.colonias ?? [];
+        setPostalColonias(colonias);
+
+        const prevAuto = lastAutoFillRef.current;
+        const cityIsAuto = !city.trim() || (!!prevAuto && city === prevAuto.city);
+        const stateIsAuto =
+          !stateMx.trim() || (!!prevAuto && stateMx === prevAuto.state);
+
+        const nextCity = data.ciudad ?? "";
+        const nextState = data.estado ?? "";
+        if (cityIsAuto && nextCity) setCity(nextCity);
+        if (
+          stateIsAuto &&
+          nextState &&
+          (MX_STATES as readonly string[]).includes(nextState)
+        ) {
+          setStateMx(nextState);
+        }
+        lastAutoFillRef.current = { cp, city: nextCity, state: nextState };
+
+        if (!customNeighborhood) {
+          if (colonias.length === 1) {
+            setNeighborhood(colonias[0]);
+          } else if (colonias.length > 1 && !colonias.includes(neighborhood)) {
+            setNeighborhood("");
+          }
+        }
+      } catch {
+        if (!cancelled) {
+          setPostalStatus("not-found");
+          setPostalColonias([]);
+        }
+      }
+    }, 400);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo re-consulta cuando cambia el CP
+  }, [postalCode]);
+
   const selectedShipping = useMemo(
     () => shippingMethods.find((m) => m.id === shippingMethodId) ?? null,
     [shippingMethods, shippingMethodId],
@@ -214,6 +317,23 @@ export function CheckoutView({ shippingMethods }: Props) {
     : 0;
   const discountAmount = appliedCoupon?.discount ?? 0;
   const estimatedTotal = Math.max(0, subtotal - discountAmount + shippingCost);
+
+  // Un solo InitiateCheckout por visita a /checkout, no por cada re-render.
+  const initiateCheckoutFiredRef = useRef(false);
+  useEffect(() => {
+    if (!ready || items.length === 0 || initiateCheckoutFiredRef.current) {
+      return;
+    }
+    initiateCheckoutFiredRef.current = true;
+    trackMetaEvent("InitiateCheckout", {
+      content_ids: items.map((i) => i.productId),
+      contents: items.map((i) => ({ id: i.productId, quantity: i.quantity })),
+      num_items: count,
+      value: subtotal,
+      currency: "MXN",
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe evaluarse al montar con carrito listo
+  }, [ready, items.length]);
 
   // Si cambia el carrito, revalida el cupón aplicado
   useEffect(() => {
@@ -440,8 +560,16 @@ export function CheckoutView({ shippingMethods }: Props) {
       return Promise.reject(msg);
     }
 
+    savePurchaseSnapshot({
+      value: estimatedTotal,
+      currency: "MXN",
+      contentIds: f.items.map((i) => i.productId),
+      contents: f.items.map((i) => ({ id: i.productId, quantity: i.quantity })),
+      numItems: count,
+    });
+
     return data.preferenceId;
-  }, [buildPayload, showFieldIssue]);
+  }, [buildPayload, showFieldIssue, estimatedTotal, count]);
 
   const createPayPalOrder = useCallback(async () => {
     setStatus(null);
@@ -469,8 +597,16 @@ export function CheckoutView({ shippingMethods }: Props) {
       return Promise.reject(msg);
     }
 
+    savePurchaseSnapshot({
+      value: estimatedTotal,
+      currency: "MXN",
+      contentIds: f.items.map((i) => i.productId),
+      contents: f.items.map((i) => ({ id: i.productId, quantity: i.quantity })),
+      numItems: count,
+    });
+
     return data.orderId;
-  }, [buildPayload, showFieldIssue]);
+  }, [buildPayload, showFieldIssue, estimatedTotal, count]);
 
   const onPayPalApprove = useCallback(
     async (orderID: string) => {
@@ -544,6 +680,68 @@ export function CheckoutView({ shippingMethods }: Props) {
           Editar carrito
         </Link>
       </header>
+
+      <ul className="mt-6 grid gap-3 border border-line bg-petal/30 px-5 py-4 text-xs text-ink-soft animate-fade-up-delay sm:grid-cols-3 sm:gap-6">
+        <li className="flex items-center gap-2.5">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="shrink-0 text-ink"
+            aria-hidden
+          >
+            <rect x="4" y="10" width="16" height="10" rx="1.5" />
+            <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+          </svg>
+          <span>
+            Pago protegido con Mercado Pago o PayPal — no guardamos los datos
+            de tu tarjeta.
+          </span>
+        </li>
+        <li className="flex items-center gap-2.5">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="shrink-0 text-ink"
+            aria-hidden
+          >
+            <path d="M3 7h11v9H3z" />
+            <path d="M14 10h4l3 3v3h-7z" />
+            <circle cx="7.5" cy="18" r="1.5" />
+            <circle cx="17.5" cy="18" r="1.5" />
+          </svg>
+          <span>Envío a todo México con número de rastreo por correo.</span>
+        </li>
+        <li className="flex items-center gap-2.5">
+          <svg
+            width="15"
+            height="15"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            className="shrink-0 text-ink"
+            aria-hidden
+          >
+            <circle cx="12" cy="12" r="9" />
+            <path d="M12 7.5v5l3.5 2" />
+          </svg>
+          <span>
+            ¿Dudas de talla?{" "}
+            <Link href="/guia-tallas" className="link-anim text-ink">
+              Revisa la guía
+            </Link>{" "}
+            antes de pagar — por higiene no se aceptan cambios de talla.
+          </span>
+        </li>
+      </ul>
 
       <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
         <div className="stagger-list space-y-10">
@@ -728,6 +926,46 @@ export function CheckoutView({ shippingMethods }: Props) {
                 />
               </div>
               <FieldWrap
+                tipId="checkout-postal"
+                tip={fieldTip}
+                className="sm:col-span-2"
+              >
+                <FieldLabel required htmlFor="checkout-postal">
+                  Código postal
+                </FieldLabel>
+                <input
+                  id="checkout-postal"
+                  required
+                  value={postalCode}
+                  onChange={(e) => {
+                    setPostalCode(e.target.value.replace(/\D/g, "").slice(0, 5));
+                    clearFieldTip("checkout-postal");
+                  }}
+                  className="input-soft mt-1.5 max-w-[10rem]"
+                  autoComplete="postal-code"
+                  inputMode="numeric"
+                  maxLength={5}
+                />
+                {postalStatus === "loading" ? (
+                  <p className="mt-1.5 text-xs text-ink-soft">Buscando…</p>
+                ) : postalStatus === "found" ? (
+                  <p className="mt-1.5 animate-fade-up text-xs text-ink-soft">
+                    {postalColonias.length > 1
+                      ? `${postalColonias.length} colonias encontradas · ${city}, ${stateMx}`
+                      : `Detectado: ${city}, ${stateMx}`}
+                  </p>
+                ) : postalStatus === "not-found" ? (
+                  <p className="mt-1.5 text-xs text-ink-soft">
+                    No encontramos ese código postal, completa los datos manualmente.
+                  </p>
+                ) : (
+                  <p className="mt-1.5 text-xs text-ink-soft">
+                    Escríbelo primero: así completamos colonia, ciudad y estado
+                    por ti.
+                  </p>
+                )}
+              </FieldWrap>
+              <FieldWrap
                 tipId="checkout-neighborhood"
                 tip={fieldTip}
                 className="sm:col-span-2"
@@ -735,16 +973,63 @@ export function CheckoutView({ shippingMethods }: Props) {
                 <FieldLabel required htmlFor="checkout-neighborhood">
                   Colonia
                 </FieldLabel>
-                <input
-                  id="checkout-neighborhood"
-                  required
-                  value={neighborhood}
-                  onChange={(e) => {
-                    setNeighborhood(e.target.value);
-                    clearFieldTip("checkout-neighborhood");
-                  }}
-                  className="input-soft mt-1.5"
-                />
+                {postalColonias.length > 1 && !customNeighborhood ? (
+                  <>
+                    <select
+                      id="checkout-neighborhood"
+                      required
+                      value={neighborhood}
+                      onChange={(e) => {
+                        setNeighborhood(e.target.value);
+                        clearFieldTip("checkout-neighborhood");
+                      }}
+                      className="input-soft mt-1.5"
+                    >
+                      <option value="">Selecciona tu colonia</option>
+                      {postalColonias.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        customNeighborhoodCpRef.current = postalCode.trim();
+                        setCustomNeighborhood(true);
+                        setNeighborhood("");
+                      }}
+                      className="link-anim mt-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-ink-soft"
+                    >
+                      Mi colonia no aparece en la lista
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <input
+                      id="checkout-neighborhood"
+                      required
+                      value={neighborhood}
+                      onChange={(e) => {
+                        setNeighborhood(e.target.value);
+                        clearFieldTip("checkout-neighborhood");
+                      }}
+                      className="input-soft mt-1.5"
+                    />
+                    {postalColonias.length > 1 ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          customNeighborhoodCpRef.current = null;
+                          setCustomNeighborhood(false);
+                        }}
+                        className="link-anim mt-1.5 text-[0.65rem] uppercase tracking-[0.14em] text-ink-soft"
+                      >
+                        Elegir de la lista
+                      </button>
+                    ) : null}
+                  </>
+                )}
               </FieldWrap>
               <FieldWrap tipId="checkout-city" tip={fieldTip}>
                 <FieldLabel required htmlFor="checkout-city">
@@ -760,23 +1045,6 @@ export function CheckoutView({ shippingMethods }: Props) {
                   }}
                   className="input-soft mt-1.5"
                   autoComplete="address-level2"
-                />
-              </FieldWrap>
-              <FieldWrap tipId="checkout-postal" tip={fieldTip}>
-                <FieldLabel required htmlFor="checkout-postal">
-                  Código postal
-                </FieldLabel>
-                <input
-                  id="checkout-postal"
-                  required
-                  value={postalCode}
-                  onChange={(e) => {
-                    setPostalCode(e.target.value);
-                    clearFieldTip("checkout-postal");
-                  }}
-                  className="input-soft mt-1.5"
-                  autoComplete="postal-code"
-                  inputMode="numeric"
                 />
               </FieldWrap>
               <FieldWrap tipId="checkout-state" tip={fieldTip}>
@@ -1007,6 +1275,24 @@ export function CheckoutView({ shippingMethods }: Props) {
                 Elige PayPal o Mercado Pago
               </p>
             </div>
+
+            <p className="mb-4 flex items-center gap-2 text-[0.7rem] text-ink-soft">
+              <svg
+                width="13"
+                height="13"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="1.5"
+                className="shrink-0"
+                aria-hidden
+              >
+                <rect x="4" y="10" width="16" height="10" rx="1.5" />
+                <path d="M8 10V7a4 4 0 0 1 8 0v3" />
+              </svg>
+              Conexión cifrada · tu pago lo procesa directamente Mercado Pago
+              o PayPal.
+            </p>
 
             {status ? (
               <p

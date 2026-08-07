@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 import { useEffect } from "react";
+import { takePurchaseSnapshot, trackMetaEvent } from "@/lib/analytics/metaPixel";
 
 function SuccessMark({ className }: { className?: string }) {
   return (
@@ -50,8 +51,21 @@ export function CheckoutSuccessClient({
   const { clear } = useCart();
 
   useEffect(() => {
+    const snapshot = takePurchaseSnapshot();
+    if (snapshot) {
+      trackMetaEvent("Purchase", {
+        value: snapshot.value,
+        currency: snapshot.currency,
+        content_ids: snapshot.contentIds,
+        contents: snapshot.contents,
+        num_items: snapshot.numItems,
+        content_type: "product",
+        order_id: orderNumber,
+      });
+    }
     clear();
-  }, [clear]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- solo al montar la página de éxito
+  }, []);
 
   return (
     <div className="relative overflow-hidden">

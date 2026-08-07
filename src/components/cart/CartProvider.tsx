@@ -18,6 +18,7 @@ import {
   writeCartItems,
   type CartItem,
 } from "@/lib/cart/storage";
+import { trackMetaEvent } from "@/lib/analytics/metaPixel";
 
 type AddInput = Omit<CartItem, "key" | "quantity"> & { quantity?: number };
 
@@ -95,6 +96,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
     (input: AddInput) => {
       const base = readCartItems();
       commitItems(mergeAddItem(base, input));
+      const qty = Math.max(1, input.quantity ?? 1);
+      trackMetaEvent("AddToCart", {
+        content_ids: [input.productId],
+        content_name: input.name,
+        content_type: "product",
+        contents: [{ id: input.productId, quantity: qty }],
+        value: input.price * qty,
+        currency: "MXN",
+      });
     },
     [commitItems],
   );
