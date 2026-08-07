@@ -1,10 +1,27 @@
 /**
- * Envía un evento al Meta Pixel si está cargado (no-op si el usuario tiene
- * bloqueador de anuncios, el pixel no cargó, o estamos en el servidor).
+ * `fbq` carga con strategy="afterInteractive" (next/script), así que puede
+ * no existir todavía cuando un componente monta y dispara un evento de
+ * inmediato (p. ej. InitiateCheckout al entrar a /checkout). Reintenta unos
+ * segundos antes de darse por vencido, en vez de perder el evento en
+ * silencio con `window.fbq?.(...)`.
+ */
+function whenPixelReady(callback: () => void, attemptsLeft = 20) {
+  if (typeof window === "undefined") return;
+  if (window.fbq) {
+    callback();
+    return;
+  }
+  if (attemptsLeft <= 0) return;
+  setTimeout(() => whenPixelReady(callback, attemptsLeft - 1), 150);
+}
+
+/**
+ * Envía un evento al Meta Pixel si está o llega a estar cargado (no-op si
+ * el usuario tiene bloqueador de anuncios, no hay Pixel ID configurado, o
+ * estamos en el servidor).
  */
 export function trackMetaEvent(event: string, params?: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  window.fbq?.("track", event, params);
+  whenPixelReady(() => window.fbq?.("track", event, params));
 }
 
 const PURCHASE_SNAPSHOT_KEY = "cleoh-pixel-purchase-snapshot";
