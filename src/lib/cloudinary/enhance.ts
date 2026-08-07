@@ -49,7 +49,11 @@ export async function enhanceImageBuffer(
 
   const timestamp = Math.round(Date.now() / 1000).toString();
   const transformation = CLOUDINARY_ENHANCE_TRANSFORM;
-  const signature = signParams({ timestamp, transformation }, apiSecret);
+  const folder = "cleoh/uploads-temp";
+  // Cloudinary firma TODOS los parámetros que se envían (menos file/api_key/
+  // resource_type); si "folder" no entra aquí, la firma no coincide con la que
+  // calcula el servidor y responde "Invalid Signature".
+  const signature = signParams({ timestamp, transformation, folder }, apiSecret);
 
   const form = new FormData();
   form.append(
@@ -61,7 +65,7 @@ export async function enhanceImageBuffer(
   form.append("timestamp", timestamp);
   form.append("signature", signature);
   form.append("transformation", transformation);
-  form.append("folder", "cleoh/uploads-temp");
+  form.append("folder", folder);
 
   const uploadRes = await fetch(
     `https://api.cloudinary.com/v1_1/${cloudName}/image/upload`,
