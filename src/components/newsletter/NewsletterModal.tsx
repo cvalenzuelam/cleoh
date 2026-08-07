@@ -9,50 +9,14 @@ import {
   saveCheckoutEmail,
   syncAbandonedCartNow,
 } from "@/lib/cart/abandon-client";
+import {
+  markNewsletterDismissed,
+  markNewsletterSubscribed,
+  shouldShowNewsletterPopup,
+} from "@/lib/newsletter/client-storage";
 import { site } from "@/data/site";
 
-const STORAGE_KEY = "cleoh-newsletter";
 const OPEN_DELAY_MS = 6000;
-const DISMISS_DAYS = 7;
-
-const SKIP_PATH_PREFIXES = ["/checkout", "/carrito"];
-
-type StorageState =
-  | { subscribed: true }
-  | { dismissedUntil: number };
-
-function readStorage(): StorageState | null {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return null;
-    return JSON.parse(raw) as StorageState;
-  } catch {
-    return null;
-  }
-}
-
-function shouldShowPopup(pathname: string) {
-  if (SKIP_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-    return false;
-  }
-
-  const stored = readStorage();
-  if (stored && "subscribed" in stored && stored.subscribed) return false;
-  if (stored && "dismissedUntil" in stored && stored.dismissedUntil > Date.now()) {
-    return false;
-  }
-
-  return true;
-}
-
-function markSubscribed() {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ subscribed: true }));
-}
-
-function markDismissed() {
-  const dismissedUntil = Date.now() + DISMISS_DAYS * 24 * 60 * 60 * 1000;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify({ dismissedUntil }));
-}
 
 function CloseIcon() {
   return (
@@ -89,7 +53,7 @@ export function NewsletterModal() {
   }, []);
 
   useEffect(() => {
-    if (!mounted || !shouldShowPopup(pathname)) return;
+    if (!mounted || !shouldShowNewsletterPopup(pathname)) return;
 
     const timer = window.setTimeout(() => setOpen(true), OPEN_DELAY_MS);
     return () => window.clearTimeout(timer);
@@ -110,7 +74,7 @@ export function NewsletterModal() {
   }, [open, status]);
 
   function handleDismiss() {
-    if (status !== "success") markDismissed();
+    if (status !== "success") markNewsletterDismissed();
     setOpen(false);
   }
 
@@ -138,7 +102,7 @@ export function NewsletterModal() {
         return;
       }
 
-      markSubscribed();
+      markNewsletterSubscribed();
       setEmailSent(Boolean(data.emailSent));
       setStatus("success");
       const normalized = email.trim().toLowerCase();
@@ -234,8 +198,7 @@ export function NewsletterModal() {
                 ) : (
                   <>
                     <p className="text-sm leading-relaxed text-ink-soft">
-                      Déjanos tu email y te enviamos un código del 10% de
-                      descuento para tu primera compra.
+                      {site.newsletter.description}
                     </p>
                     <form onSubmit={handleSubmit} className="mt-5 space-y-4">
                       <div>

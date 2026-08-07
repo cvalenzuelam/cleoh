@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
 import { SocialIcons } from "@/components/layout/SocialIcons";
 import type { NavLink } from "@/components/layout/SiteHeader";
 import { site } from "@/data/site";
@@ -92,6 +93,24 @@ export function SiteFooter({ navLinks = [] }: { navLinks?: NavLink[] }) {
             </div>
           </div>
         </div>
+
+        <section
+          id="newsletter"
+          className="mt-14 scroll-mt-28 border-t border-porcelain/10 pt-14 lg:mt-16 lg:pt-16"
+        >
+          <div className="max-w-xl">
+            <p className="text-[0.65rem] font-medium uppercase tracking-[0.2em] text-blush">
+              Newsletter
+            </p>
+            <h2 className="mt-3 font-display text-2xl tracking-wide text-porcelain sm:text-3xl">
+              {site.newsletter.title}
+            </h2>
+            <p className="mt-3 text-sm leading-relaxed text-porcelain/70">
+              {site.newsletter.description}
+            </p>
+            <NewsletterSignup source="footer" variant="footer" />
+          </div>
+        </section>
       </div>
 
       <div className="border-t border-porcelain/10">

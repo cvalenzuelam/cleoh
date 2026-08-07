@@ -11,6 +11,13 @@ export const site = {
     code: "CLEOH10",
     label: "10% de descuento",
   },
+  newsletter: {
+    title: "10% en tu primera compra",
+    description:
+      "Déjanos tu email y te enviamos tu código de descuento para la primera compra.",
+    heroTeaser:
+      "Suscríbete con tu email y recibe 10% de descuento en tu primera compra.",
+  },
   /** Mensajes del banner superior (rotan en la tienda). El cupón CLEOH10
    *  vive en el widget de newsletter — no duplicar aquí. */
   announcements: [

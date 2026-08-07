@@ -28,12 +28,14 @@ export async function Hero() {
         <p className="animate-fade-up-delay-2 mt-3 max-w-sm text-sm leading-relaxed text-porcelain/80">
           {site.slogan}.
         </p>
-        <p className="animate-fade-up-delay-2 mt-5 max-w-sm text-[0.8rem] leading-relaxed tracking-[0.04em] text-porcelain/70">
-          Usa el código{" "}
-          <span className="font-medium tracking-[0.12em] text-porcelain">
-            {site.coupon.code}
-          </span>{" "}
-          — {site.coupon.label} en tu pedido
+        <p className="animate-fade-up-delay-2 mt-5 max-w-md text-[0.8rem] leading-relaxed tracking-[0.04em] text-porcelain/70">
+          {site.newsletter.heroTeaser}{" "}
+          <a
+            href="#newsletter"
+            className="text-porcelain underline decoration-porcelain/40 underline-offset-4 transition-colors hover:text-porcelain hover:decoration-porcelain"
+          >
+            Suscribirme
+          </a>
         </p>
         <div className="animate-fade-up-delay-2 mt-7">
           <Link
