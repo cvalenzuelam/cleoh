@@ -2,6 +2,7 @@ import "server-only";
 
 import { sendMetaPurchaseCapiEvent } from "@/lib/analytics/metaConversionsApi";
 import { markAbandonedCartRecovered } from "@/lib/cart/abandon";
+import { site } from "@/data/site";
 import { sendOrderPaidEmail } from "@/lib/email/orders";
 import { resolveShippingCents } from "@/lib/shipping/free-shipping";
 import { getShippingMethodById } from "@/lib/shipping/methods";
@@ -24,7 +25,30 @@ export function generateOrderNumber() {
   return `CLH-${stamp}-${rand}`;
 }
 
-export async function resolveCoupon(code: string | undefined, subtotalCents: number) {
+async function emailAlreadyUsedWelcomeCoupon(
+  supabase: ReturnType<typeof createServiceClient>,
+  email: string,
+) {
+  const normalized = email.trim().toLowerCase();
+  if (!normalized) return false;
+
+  const { data } = await supabase
+    .from("orders")
+    .select("id")
+    .eq("email", normalized)
+    .in("status", ["paid", "fulfilled"])
+    .ilike("coupon_code", site.coupon.code)
+    .limit(1)
+    .maybeSingle();
+
+  return Boolean(data);
+}
+
+export async function resolveCoupon(
+  code: string | undefined,
+  subtotalCents: number,
+  email?: string,
+) {
   if (!code?.trim()) {
     return { couponId: null as string | null, couponCode: null as string | null, discountCents: 0 };
   }
@@ -41,6 +65,23 @@ export async function resolveCoupon(code: string | undefined, subtotalCents: num
 
   if (error || !coupon) {
     return { error: "Cupón no válido." as const };
+  }
+
+  if (
+    coupon.code.toUpperCase() === site.coupon.code.toUpperCase()
+  ) {
+    if (!email?.trim()) {
+      return {
+        error:
+          "Ingresa tu correo en «Tus datos» para validar este cupón." as const,
+      };
+    }
+    const alreadyUsed = await emailAlreadyUsedWelcomeCoupon(supabase, email);
+    if (alreadyUsed) {
+      return {
+        error: "Este cupón solo aplica en tu primera compra." as const,
+      };
+    }
   }
 
   if (coupon.starts_at && new Date(coupon.starts_at) > new Date()) {
@@ -186,7 +227,11 @@ export async function createPendingOrder(input: {
   }
 
   const subtotalCents = lines.reduce((s, l) => s + l.lineTotalCents, 0);
-  const couponResult = await resolveCoupon(input.couponCode, subtotalCents);
+  const couponResult = await resolveCoupon(
+    input.couponCode,
+    subtotalCents,
+    input.email,
+  );
   if ("error" in couponResult && couponResult.error) {
     return { error: couponResult.error };
   }

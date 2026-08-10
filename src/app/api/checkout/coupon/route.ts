@@ -5,6 +5,8 @@ type Body = {
   code?: string;
   /** Subtotal del carrito en pesos MXN */
   subtotal?: number;
+  /** Correo del checkout — necesario para cupones de primera compra */
+  email?: string;
 };
 
 export async function POST(request: Request) {
@@ -29,7 +31,7 @@ export async function POST(request: Request) {
   }
 
   const subtotalCents = Math.round(subtotalPesos * 100);
-  const result = await resolveCoupon(code, subtotalCents);
+  const result = await resolveCoupon(code, subtotalCents, body.email);
 
   if ("error" in result && result.error) {
     return NextResponse.json({ error: result.error }, { status: 400 });

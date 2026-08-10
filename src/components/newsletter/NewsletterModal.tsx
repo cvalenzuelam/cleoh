@@ -46,6 +46,7 @@ export function NewsletterModal() {
   );
   const [error, setError] = useState("");
   const [emailSent, setEmailSent] = useState(false);
+  const [isReturningSubscriber, setIsReturningSubscriber] = useState(false);
   const [resendStatus, setResendStatus] = useState<
     "idle" | "loading" | "sent" | "error"
   >("idle");
@@ -101,6 +102,7 @@ export function NewsletterModal() {
         ok?: boolean;
         code?: string;
         emailSent?: boolean;
+        duplicate?: boolean;
         error?: string;
       };
 
@@ -113,6 +115,7 @@ export function NewsletterModal() {
       const normalized = email.trim().toLowerCase();
       markNewsletterSubscribed(normalized);
       setEmail(normalized);
+      setIsReturningSubscriber(Boolean(data.duplicate));
       setEmailSent(Boolean(data.emailSent));
       setStatus("success");
       saveCheckoutEmail(normalized);
@@ -203,7 +206,9 @@ export function NewsletterModal() {
                   className="pr-10 font-display text-2xl tracking-wide text-ink sm:text-3xl"
                 >
                   {status === "success"
-                    ? "¡Listo!"
+                    ? isReturningSubscriber
+                      ? "¡Bienvenida de nuevo!"
+                      : "¡Listo!"
                     : "10% en tu primera compra"}
                 </h2>
               </div>
@@ -212,7 +217,9 @@ export function NewsletterModal() {
                 {status === "success" ? (
                   <div className="text-center">
                     <p className="text-sm text-ink-soft">
-                      Tu código de descuento:
+                      {isReturningSubscriber
+                        ? "Tu código de bienvenida sigue siendo:"
+                        : "Tu código de descuento:"}
                     </p>
                     <p className="mt-3 font-display text-4xl tracking-[0.12em] text-ink">
                       {site.coupon.code}
@@ -222,8 +229,17 @@ export function NewsletterModal() {
                     </p>
                     {emailSent ? (
                       <p className="mt-4 text-xs text-ink-soft">
-                        También lo enviamos a{" "}
-                        <span className="text-ink">{email}</span>
+                        {isReturningSubscriber ? (
+                          <>
+                            Lo reenviamos a{" "}
+                            <span className="text-ink">{email}</span>
+                          </>
+                        ) : (
+                          <>
+                            También lo enviamos a{" "}
+                            <span className="text-ink">{email}</span>
+                          </>
+                        )}
                       </p>
                     ) : (
                       <p className="mt-4 text-xs text-ink-soft">

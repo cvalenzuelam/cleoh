@@ -492,6 +492,7 @@ export function CheckoutView({ shippingMethods }: Props) {
           body: JSON.stringify({
             code: appliedCoupon.code,
             subtotal,
+            email: email.trim() || undefined,
           }),
         });
         const data = (await res.json()) as {
@@ -516,7 +517,7 @@ export function CheckoutView({ shippingMethods }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [subtotal, appliedCoupon?.code]); // eslint-disable-line react-hooks/exhaustive-deps -- solo revalidar al cambiar subtotal/código
+  }, [subtotal, appliedCoupon?.code, email]); // eslint-disable-line react-hooks/exhaustive-deps -- revalidar al cambiar subtotal, código o email
 
   const formSnapshot = useMemo<CheckoutFormSnapshot>(
     () => ({
@@ -620,7 +621,11 @@ export function CheckoutView({ shippingMethods }: Props) {
       const res = await fetch("/api/checkout/coupon", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ code, subtotal }),
+        body: JSON.stringify({
+          code,
+          subtotal,
+          email: email.trim() || undefined,
+        }),
       });
       const data = (await res.json()) as {
         error?: string;
@@ -645,7 +650,7 @@ export function CheckoutView({ shippingMethods }: Props) {
     } finally {
       setCouponBusy(false);
     }
-  }, [coupon, subtotal]);
+  }, [coupon, subtotal, email]);
 
   const scrollToStep = useCallback((step: CheckoutStepNum) => {
     requestAnimationFrame(() => {

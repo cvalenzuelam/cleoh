@@ -45,6 +45,7 @@ export function NewsletterSignup({
   >("idle");
   const [error, setError] = useState("");
   const [alreadySubscribed, setAlreadySubscribed] = useState(false);
+  const [isReturningSubscriber, setIsReturningSubscriber] = useState(false);
   const [resendStatus, setResendStatus] = useState<
     "idle" | "loading" | "sent" | "error"
   >("idle");
@@ -63,6 +64,7 @@ export function NewsletterSignup({
       const subscribed = isNewsletterSubscribed();
       setAlreadySubscribed(subscribed);
       if (subscribed) {
+        setIsReturningSubscriber(true);
         const stored = getNewsletterEmail();
         if (stored) {
           setEmail(stored);
@@ -81,6 +83,7 @@ export function NewsletterSignup({
     const data = (await res.json()) as {
       ok?: boolean;
       emailSent?: boolean;
+      duplicate?: boolean;
       error?: string;
     };
     return { res, data };
@@ -122,6 +125,7 @@ export function NewsletterSignup({
 
       markNewsletterSubscribed(normalized);
       setAlreadySubscribed(true);
+      setIsReturningSubscriber(Boolean(data.duplicate));
       setEmail(normalized);
       setResendEmail(normalized);
       setStatus("success");
@@ -268,10 +272,21 @@ export function NewsletterSignup({
               : "font-display text-2xl tracking-wide text-ink"
           }
         >
-          ¡Listo! Tu código es {site.coupon.code}
+          {isReturningSubscriber
+            ? `${site.newsletter.successReturning} ${site.coupon.code}`
+            : `${site.newsletter.successNew} ${site.coupon.code}`}
         </p>
         <p className={`mt-2 text-sm ${muted}`}>
-          {hasStoredEmail ? `También lo enviamos a ${email}. ` : null}
+          {hasStoredEmail ? (
+            isReturningSubscriber ? (
+              <>
+                Si no lo encuentras, revisa tu correo en{" "}
+                <span className="font-medium">{email}</span> o reenvíalo abajo.{" "}
+              </>
+            ) : (
+              <>También lo enviamos a {email}. </>
+            )
+          ) : null}
           Escríbelo al pagar en checkout.
         </p>
 

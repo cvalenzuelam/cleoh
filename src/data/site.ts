@@ -17,6 +17,9 @@ export const site = {
       "Déjanos tu email y te enviamos tu código de descuento para la primera compra.",
     heroTeaser:
       "Suscríbete con tu email y recibe 10% de descuento en tu primera compra.",
+    successNew: "¡Listo! Tu código es",
+    successReturning:
+      "Ya estás en nuestra lista. Tu código de bienvenida sigue siendo",
   },
   /** Umbral de subtotal (MXN) para envío gratis real en carrito/checkout. */
   freeShippingThresholdMxn: 1000,
