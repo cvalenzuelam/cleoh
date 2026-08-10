@@ -2,6 +2,7 @@ import { unstable_noStore as noStore } from "next/cache";
 import { createClient } from "@supabase/supabase-js";
 import { categories as staticCategories } from "@/data/categories";
 import { cleanEnv } from "@/lib/env/clean";
+import type { SearchHit } from "@/lib/search/types";
 import {
   isSalePrice,
   type CatalogBadge,
@@ -305,4 +306,174 @@ export async function getRelatedProducts(
   }
 
   return ((data ?? []) as unknown as ProductRow[]).map(mapProduct);
+}
+
+function hasAvailableStock(product: CatalogProduct) {
+  return product.sizes.some((s) => s.stock > 0);
+}
+
+/** Productos para upsell en drawer: ofertas primero, luego misma categoría, luego catálogo. */
+export async function getCartUpsellProducts(
+  cartProductIds: string[],
+  limit = 12,
+): Promise<CatalogProduct[]> {
+  const exclude = new Set(cartProductIds);
+  const seen = new Set<string>();
+  const result: CatalogProduct[] = [];
+
+  const tryAdd = (products: CatalogProduct[]) => {
+    for (const p of products) {
+      if (exclude.has(p.id) || seen.has(p.id) || !hasAvailableStock(p)) continue;
+      seen.add(p.id);
+      result.push(p);
+      if (result.length >= limit) return true;
+    }
+    return false;
+  };
+
+  const all = await getActiveProducts();
+
+  const onSale = all
+    .filter(
+      (p) =>
+        !exclude.has(p.id) &&
+        (p.badge === "oferta" || isSalePrice(p.price, p.compareAtPrice)),
+    )
+    .filter(hasAvailableStock)
+    .sort((a, b) => a.price - b.price);
+
+  if (tryAdd(onSale)) return result;
+
+  const supabase = publicClient();
+  const uniqueIds = [...new Set(cartProductIds)].slice(0, 8);
+  if (uniqueIds.length) {
+    const { data } = await supabase
+      .from("products")
+      .select("categories ( slug )")
+      .in("id", uniqueIds);
+
+    const categorySlugs = new Set<string>();
+    for (const row of data ?? []) {
+      const cat = Array.isArray(row.categories)
+        ? row.categories[0]
+        : row.categories;
+      if (cat?.slug) categorySlugs.add(cat.slug);
+    }
+
+    for (const slug of categorySlugs) {
+      const byCat = await getProductsByCategorySlug(slug);
+      if (tryAdd(byCat)) return result;
+    }
+  }
+
+  tryAdd(all);
+  return result;
+}
+
+const searchSelect = `
+  id,
+  slug,
+  name,
+  price_cents,
+  compare_at_cents,
+  primary_image_url,
+  categories ( slug, name )
+`;
+
+type SearchRow = {
+  id: string;
+  slug: string;
+  name: string;
+  price_cents: number;
+  compare_at_cents: number | null;
+  primary_image_url: string | null;
+  categories:
+    | { slug: string; name: string }
+    | { slug: string; name: string }[]
+    | null;
+};
+
+function mapSearchHit(row: SearchRow): SearchHit {
+  const cat = Array.isArray(row.categories)
+    ? row.categories[0]
+    : row.categories;
+  const price = row.price_cents / 100;
+  const compareRaw = row.compare_at_cents
+    ? row.compare_at_cents / 100
+    : null;
+
+  return {
+    id: row.id,
+    slug: row.slug,
+    name: row.name,
+    price,
+    compareAtPrice: isSalePrice(price, compareRaw) ? compareRaw : null,
+    image: row.primary_image_url?.replace(/[\r\n\t]+/g, "").trim() || null,
+    categorySlug: cat?.slug ?? null,
+    categoryName: cat?.name ?? null,
+  };
+}
+
+function sanitizeSearchQuery(query: string) {
+  return query.trim().replace(/[%_\\]/g, "").slice(0, 80);
+}
+
+/** Búsqueda por nombre o descripción (ilike). */
+export async function searchProducts(
+  query: string,
+  limit = 24,
+): Promise<{ hits: SearchHit[]; total: number }> {
+  const q = sanitizeSearchQuery(query);
+  if (q.length < 2) return { hits: [], total: 0 };
+
+  const supabase = publicClient();
+  const pattern = `%${q}%`;
+
+  const { data, error, count } = await supabase
+    .from("products")
+    .select(searchSelect, { count: "exact" })
+    .eq("is_active", true)
+    .or(`name.ilike.${pattern},description.ilike.${pattern}`)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("searchProducts", error.message);
+    return { hits: [], total: 0 };
+  }
+
+  return {
+    hits: ((data ?? []) as unknown as SearchRow[]).map(mapSearchHit),
+    total: count ?? 0,
+  };
+}
+
+/** Búsqueda con datos completos para cards de catálogo. */
+export async function searchCatalogProducts(
+  query: string,
+  limit = 48,
+): Promise<{ products: CatalogProduct[]; total: number }> {
+  const q = sanitizeSearchQuery(query);
+  if (q.length < 2) return { products: [], total: 0 };
+
+  const supabase = publicClient();
+  const pattern = `%${q}%`;
+
+  const { data, error, count } = await supabase
+    .from("products")
+    .select(productSelect, { count: "exact" })
+    .eq("is_active", true)
+    .or(`name.ilike.${pattern},description.ilike.${pattern}`)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) {
+    console.error("searchCatalogProducts", error.message);
+    return { products: [], total: 0 };
+  }
+
+  return {
+    products: ((data ?? []) as unknown as ProductRow[]).map(mapProduct),
+    total: count ?? 0,
+  };
 }

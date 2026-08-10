@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { InstagramLink } from "@/components/store/InstagramLink";
 import { site } from "@/data/site";
 
 export const metadata: Metadata = {
   title: "Contacto",
   description:
-    "Horarios de atención Cleoh y contacto por Instagram @cleoh.mex.",
+    "Horarios de atención Cleoh y contacto por Instagram @cleoh_lenceria.",
 };
 
 const HOURS = [
@@ -51,8 +52,9 @@ export default function ContactoPage() {
           Contáctanos
         </h1>
         <p className="animate-fade-up-delay mx-auto mt-5 max-w-md text-sm leading-relaxed text-ink-soft sm:text-base">
-          Dudas de tallas, pedidos o envíos — te atendemos por Instagram. Es
-          nuestra única vía de contacto.
+          Dudas de tallas, pedidos o envíos — te atendemos por{" "}
+          <InstagramLink className="text-rose underline-offset-2 hover:underline" />
+          . Es nuestra única vía de contacto.
         </p>
 
         <a

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InfoPage, InfoSection } from "@/components/store/InfoPage";
+import { InstagramRichText } from "@/components/store/InstagramRichText";
 import { politicasSections } from "@/data/legal";
 
 export const metadata: Metadata = {
@@ -20,12 +21,22 @@ export default function PoliticasPage() {
         {politicasSections.map((section) => (
           <InfoSection key={section.title} title={section.title}>
             {section.paragraphs.map((p, i) => (
-              <p key={i}>{p}</p>
+              <p key={i}>
+                <InstagramRichText
+                  text={p}
+                  linkClassName="link-anim text-rose"
+                />
+              </p>
             ))}
             {section.bullets ? (
               <ul className="list-disc space-y-1.5 pl-5">
                 {section.bullets.map((b, i) => (
-                  <li key={i}>{b}</li>
+                  <li key={i}>
+                    <InstagramRichText
+                      text={b}
+                      linkClassName="link-anim text-rose"
+                    />
+                  </li>
                 ))}
               </ul>
             ) : null}

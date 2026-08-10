@@ -5,7 +5,7 @@ import { getFreeShippingProgress } from "@/lib/shipping/free-shipping";
 
 type Props = {
   subtotal: number;
-  variant?: "cart" | "checkout";
+  variant?: "cart" | "checkout" | "drawer";
 };
 
 export function FreeShippingProgress({
@@ -18,7 +18,9 @@ export function FreeShippingProgress({
   const boxClass =
     variant === "checkout"
       ? "border border-line bg-petal/50 p-4"
-      : "border border-line/80 bg-porcelain p-4";
+      : variant === "drawer"
+        ? "bg-petal/40 p-4"
+        : "border border-line/80 bg-porcelain p-4";
 
   return (
     <div className={boxClass}>

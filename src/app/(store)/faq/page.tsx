@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { InfoPage } from "@/components/store/InfoPage";
+import { InstagramRichText } from "@/components/store/InstagramRichText";
 import { faqItems } from "@/data/legal";
 
 export const metadata: Metadata = {
@@ -23,7 +24,10 @@ export default function FaqPage() {
               {item.question}
             </dt>
             <dd className="mt-3 text-sm leading-relaxed text-ink-soft">
-              {item.answer}
+              <InstagramRichText
+                text={item.answer}
+                linkClassName="link-anim text-rose"
+              />
             </dd>
           </div>
         ))}

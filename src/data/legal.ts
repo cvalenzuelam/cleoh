@@ -30,7 +30,12 @@ export const faqItems: FaqItem[] = [
   {
     question: "¿Qué métodos de pago aceptan?",
     answer:
-      "Puedes pagar con Mercado Pago (tarjetas y medios disponibles en su checkout) o con PayPal. Los precios están en pesos mexicanos (MXN).",
+      "Puedes pagar con Mercado Pago (tarjetas y medios disponibles en su checkout), con PayPal o por transferencia/depósito bancario (SPEI) a nuestra cuenta BBVA. Si pagas por transferencia, realiza el pago y envía tu comprobante por Instagram (@cleoh_lenceria) con tu número de pedido; validamos el pago manualmente antes de preparar tu envío. Los precios están en pesos mexicanos (MXN).",
+  },
+  {
+    question: "¿Cómo pago por transferencia bancaria?",
+    answer:
+      "En el checkout elige «Depósito y transferencia». Al confirmar tu pedido verás los datos de nuestra cuenta BBVA (titular: Bricia J Elizalde). Transfiere el total exacto y manda tu comprobante por Instagram (@cleoh_lenceria) indicando tu número de pedido. Validamos el pago manualmente y te avisamos por correo cuando quede confirmado.",
   },
   {
     question: "¿Puedo usar un cupón?",
@@ -40,7 +45,7 @@ export const faqItems: FaqItem[] = [
   {
     question: "¿Cómo rastreo mi pedido?",
     answer:
-      "Cuando tu pedido salga, te enviamos un correo con el código de rastreo y el enlace de la paquetería. Si no lo ves, revisa spam o escríbenos por Instagram (@cleoh.mex).",
+      "Cuando tu pedido salga, te enviamos un correo con el código de rastreo y el enlace de la paquetería. Si no lo ves, revisa spam o escríbenos por Instagram (@cleoh_lenceria).",
   },
   {
     question: "¿Puedo cambiar o devolver una prenda?",
@@ -58,7 +63,7 @@ export const politicasSections: PolicySection[] = [
   {
     title: "Atención al cliente",
     paragraphs: [
-      "En Cleoh queremos que compres con calma. Si tienes dudas de talla, pedido o envío, escríbenos por Instagram (@cleoh.mex). Respondemos en horario de atención, normalmente en 24–48 horas hábiles.",
+      "En Cleoh queremos que compres con calma. Si tienes dudas de talla, pedido o envío, escríbenos por Instagram (@cleoh_lenceria). Respondemos en horario de atención, normalmente en 24–48 horas hábiles.",
       "Conserva tu número de pedido (aparece en el correo de confirmación); con eso te ayudamos más rápido.",
     ],
   },
@@ -66,7 +71,7 @@ export const politicasSections: PolicySection[] = [
     title: "Privacidad y datos",
     paragraphs: [
       "Usamos tus datos solo para procesar pedidos, enviar confirmaciones y, si lo autorizas, novedades de la tienda. No vendemos tu información a terceros.",
-      "En el checkout pedimos nombre, correo, teléfono y dirección de envío. El pago lo procesan Mercado Pago o PayPal; nosotros no guardamos los datos completos de tu tarjeta.",
+      "En el checkout pedimos nombre, correo, teléfono y dirección de envío. El pago lo procesan Mercado Pago o PayPal de forma cifrada; las transferencias bancarias se validan manualmente al recibir tu comprobante. Nosotros no guardamos los datos completos de tu tarjeta.",
       "Puedes pedirnos la actualización o eliminación de tus datos de contacto escribiéndonos por redes, salvo la información que debamos conservar por obligaciones fiscales o de pedidos.",
     ],
   },
@@ -78,6 +83,7 @@ export const politicasSections: PolicySection[] = [
     bullets: [
       "Mercado Pago (tarjetas y otros medios que habilite)",
       "PayPal",
+      "Transferencia o depósito bancario (SPEI) — comprobante por Instagram (@cleoh_lenceria)",
     ],
   },
   {
@@ -90,7 +96,7 @@ export const politicasSections: PolicySection[] = [
   {
     title: "Mayoreo",
     paragraphs: [
-      "Si te interesa mayoreo o colaboraciones, escríbenos por Instagram (@cleoh.mex) con el asunto “Mayoreo” y te compartimos condiciones según volumen y zona.",
+      "Si te interesa mayoreo o colaboraciones, escríbenos por Instagram (@cleoh_lenceria) con el asunto “Mayoreo” y te compartimos condiciones según volumen y zona.",
     ],
   },
 ];
@@ -123,7 +129,7 @@ export const enviosSections: PolicySection[] = [
   {
     title: "Pedidos con detalle",
     paragraphs: [
-      "Por higiene y el carácter íntimo de la lencería, no manejamos devoluciones ni cambios por preferencia de talla, color o gusto. Antes de comprar, revisa la guía de tallas; si tienes duda, escríbenos por Instagram (@cleoh.mex) y te ayudamos a elegir.",
+      "Por higiene y el carácter íntimo de la lencería, no manejamos devoluciones ni cambios por preferencia de talla, color o gusto. Antes de comprar, revisa la guía de tallas; si tienes duda, escríbenos por Instagram (@cleoh_lenceria) y te ayudamos a elegir.",
       "Si tu pedido llegó dañado, incompleto o no corresponde a lo que compraste, contáctanos por Instagram dentro de los 5 días hábiles siguientes a la entrega, con fotos y tu número de pedido. Revisamos cada caso con cuidado para encontrar la mejor solución.",
     ],
   },

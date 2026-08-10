@@ -6,6 +6,7 @@ import { sendOrderPaidEmail } from "@/lib/email/orders";
 import { resolveShippingCents } from "@/lib/shipping/free-shipping";
 import { getShippingMethodById } from "@/lib/shipping/methods";
 import type { ShippingAddress } from "@/lib/shipping/types";
+import type { PaymentMethod } from "@/lib/orders/payment-method";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export type CheckoutLine = {
@@ -114,6 +115,7 @@ export async function createPendingOrder(input: {
   shippingMethodId?: string;
   shippingAddress?: ShippingAddress;
   notes?: string;
+  paymentMethod?: PaymentMethod;
 }): Promise<PendingOrderResult> {
   const supabase = createServiceClient();
 
@@ -229,6 +231,7 @@ export async function createPendingOrder(input: {
       coupon_id: couponResult.couponId,
       coupon_code: couponResult.couponCode,
       notes: input.notes?.trim() || null,
+      payment_method: input.paymentMethod ?? null,
     })
     .select(
       "id, order_number, total_cents, subtotal_cents, discount_cents, shipping_cents, coupon_code",

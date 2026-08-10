@@ -248,6 +248,69 @@ body {
   padding-left: 0.35rem;
 }
 
+/* Buscador */
+@keyframes search-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.search-panel {
+  animation: search-panel-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.search-input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid var(--cleoh-line);
+  background: transparent;
+  padding: 0.65rem 0;
+  font-size: 1rem;
+  outline: none;
+  transition:
+    border-color 0.25s ease,
+    box-shadow 0.25s ease;
+}
+
+.search-input::placeholder {
+  color: color-mix(in srgb, var(--cleoh-ink-soft) 70%, transparent);
+}
+
+.search-input:hover {
+  border-bottom-color: rgba(26, 20, 22, 0.28);
+}
+
+.search-input:focus {
+  border-bottom-color: var(--cleoh-ink);
+  box-shadow: 0 1px 0 0 var(--cleoh-ink);
+}
+
+/* Buscador — descubrimiento por categoría */
+.search-discover-track {
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.search-discover-track::-webkit-scrollbar {
+  display: none;
+}
+
+.search-discover-item:active span:first-child {
+  transform: scale(0.96);
+}
+
+.search-result-row:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cleoh-rose) 55%, transparent);
+  outline-offset: -2px;
+}
+
 /* Nav activo */
 .nav-link-active {
   color: var(--cleoh-ink);
@@ -359,6 +422,19 @@ body {
 
 .cart-add-pulse {
   animation: cart-add-flash 0.35s ease-out;
+}
+
+@keyframes cart-drawer-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.cart-drawer-panel {
+  animation: cart-drawer-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* ------------------------------------------------------------------ */
@@ -915,6 +991,11 @@ body {
   pointer-events: none;
 }
 
+.qty-stepper-sm button {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
 /* Product card lift */
 .product-card-link {
   display: block;
@@ -964,6 +1045,7 @@ body {
   .cart-bag-bump,
   .cart-bag-badge-pop,
   .cart-add-pulse,
+  .cart-drawer-panel,
   .animate-fade-up,
   .animate-fade-up-delay,
   .animate-fade-up-delay-2,
@@ -971,6 +1053,7 @@ body {
   .stagger-grid > *,
   .stagger-list > *,
   .mobile-nav-panel,
+  .search-panel,
   .chip-active,
   .select-option-active,
   .empty-bag-float,

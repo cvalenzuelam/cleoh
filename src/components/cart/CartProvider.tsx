@@ -38,6 +38,8 @@ type AddResult = {
   capped: boolean;
 };
 
+type DrawerMode = "added" | "view";
+
 type CartContextValue = {
   items: CartItem[];
   count: number;
@@ -45,11 +47,17 @@ type CartContextValue = {
   ready: boolean;
   /** Timestamp of last add — header listens to animate */
   lastAddedAt: number;
+  isOpen: boolean;
+  drawerMode: DrawerMode;
+  /** Línea recién agregada — drawer la destaca con imagen grande */
+  lastAddedKey: string | null;
   addItem: (input: AddInput) => AddResult;
   setQuantity: (key: string, quantity: number) => void;
   removeItem: (key: string) => void;
   clear: () => void;
   restoreItems: (items: CartItem[]) => void;
+  openCart: () => void;
+  closeCart: () => void;
   /** Revalida stock en DB y recorta el carrito si hace falta. */
   syncStock: () => Promise<boolean>;
 };
@@ -114,6 +122,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [items, setItems] = useState<CartItem[]>([]);
   const [ready, setReady] = useState(false);
   const [lastAddedAt, setLastAddedAt] = useState(0);
+  const [isOpen, setIsOpen] = useState(false);
+  const [drawerMode, setDrawerMode] = useState<DrawerMode>("view");
+  const [lastAddedKey, setLastAddedKey] = useState<string | null>(null);
   const syncingRef = useRef(false);
   const lastSyncSigRef = useRef("");
 
@@ -213,12 +224,25 @@ export function CartProvider({ children }: { children: ReactNode }) {
     return () => document.removeEventListener("visibilitychange", onVisible);
   }, [ready, syncStock]);
 
+  const openCart = useCallback(() => {
+    setDrawerMode("view");
+    setIsOpen(true);
+  }, []);
+
+  const closeCart = useCallback(() => {
+    setIsOpen(false);
+  }, []);
+
   const addItem = useCallback(
     (input: AddInput): AddResult => {
       const base = readCartItems();
       const result = mergeAddItem(base, input);
+      const key = cartItemKey(input.productId, input.size);
       if (result.added > 0) {
         commitItems(result.items, true);
+        setLastAddedKey(key);
+        setDrawerMode("added");
+        setIsOpen(true);
         trackMetaEvent("AddToCart", {
           content_ids: [input.productId],
           content_name: input.name,
@@ -295,22 +319,32 @@ export function CartProvider({ children }: { children: ReactNode }) {
       subtotal: cartSubtotal(items),
       ready,
       lastAddedAt,
+      isOpen,
+      drawerMode,
+      lastAddedKey,
       addItem,
       setQuantity,
       removeItem,
       clear,
       restoreItems,
+      openCart,
+      closeCart,
       syncStock,
     }),
     [
       items,
       ready,
       lastAddedAt,
+      isOpen,
+      drawerMode,
+      lastAddedKey,
       addItem,
       setQuantity,
       removeItem,
       clear,
       restoreItems,
+      openCart,
+      closeCart,
       syncStock,
     ],
   );

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createPendingOrder } from "@/lib/orders/create";
+import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
 import { createPayPalOrder, paypalConfigured } from "@/lib/paypal/client";
 import type { ShippingAddress } from "@/lib/shipping/types";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
     shippingMethodId: body.shippingMethodId,
     shippingAddress: body.shippingAddress,
     items: body.items,
+    paymentMethod: PAYMENT_METHODS.paypal,
   });
 
   if ("error" in created) {
@@ -76,6 +78,7 @@ export async function POST(request: Request) {
       .from("orders")
       .update({
         paypal_order_id: paypal.paypalOrderId,
+        payment_method: PAYMENT_METHODS.paypal,
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);

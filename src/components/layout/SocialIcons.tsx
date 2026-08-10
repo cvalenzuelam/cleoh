@@ -67,7 +67,7 @@ export function SocialIcons({ tone = "ink", className = "" }: Props) {
         href={site.social.instagram}
         target="_blank"
         rel="noopener noreferrer"
-        aria-label="Instagram @cleoh.mex"
+        aria-label={`Instagram ${site.social.instagramHandle}`}
         className={`inline-flex translate-y-[2px] scale-100 transition-transform duration-300 hover:scale-110 ${color}`}
       >
         <InstagramIcon />

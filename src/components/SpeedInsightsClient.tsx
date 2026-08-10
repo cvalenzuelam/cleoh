@@ -10,7 +10,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 export function SpeedInsightsClient() {
   return (
     <SpeedInsights
-      sampleRate={0.5}
+      sampleRate={0.2}
       beforeSend={(data) => {
         if (data.url.includes("/admin")) return null;
         return data;

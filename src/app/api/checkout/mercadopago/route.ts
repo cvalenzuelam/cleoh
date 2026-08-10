@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createCheckoutPreference } from "@/lib/mercadopago/client";
 import { createPendingOrder } from "@/lib/orders/create";
+import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
 import type { ShippingAddress } from "@/lib/shipping/types";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -56,6 +57,7 @@ export async function POST(request: Request) {
     shippingMethodId: body.shippingMethodId,
     shippingAddress: body.shippingAddress,
     items: body.items,
+    paymentMethod: PAYMENT_METHODS.mercadopago,
   });
 
   if ("error" in created) {
@@ -108,6 +110,7 @@ export async function POST(request: Request) {
       .from("orders")
       .update({
         mp_preference_id: preference.preferenceId,
+        payment_method: PAYMENT_METHODS.mercadopago,
         updated_at: new Date().toISOString(),
       })
       .eq("id", order.id);

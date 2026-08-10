@@ -5,12 +5,15 @@ import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { CartBagLink } from "@/components/cart/CartBagLink";
 import { useCart } from "@/components/cart/CartProvider";
+import { SearchTrigger } from "@/components/search/SearchTrigger";
+import { useSearch } from "@/components/search/SearchProvider";
 
 export type NavLink = { slug: string; name: string };
 
 export function SiteHeader({ navLinks = [] }: { navLinks?: NavLink[] }) {
   const [open, setOpen] = useState(false);
   const { count, ready } = useCart();
+  const { openSearch } = useSearch();
   const pathname = usePathname();
 
   function isCatActive(slug: string) {
@@ -86,6 +89,7 @@ export function SiteHeader({ navLinks = [] }: { navLinks?: NavLink[] }) {
             className="hidden h-3 w-px bg-line sm:block"
             aria-hidden
           />
+          <SearchTrigger />
           <CartBagLink />
         </div>
       </div>
@@ -93,6 +97,16 @@ export function SiteHeader({ navLinks = [] }: { navLinks?: NavLink[] }) {
       {open && (
         <div className="mobile-nav-panel border-t border-line bg-porcelain md:hidden">
           <nav className="flex flex-col px-4 py-4" aria-label="Móvil">
+            <button
+              type="button"
+              className="border-b border-line py-3 text-left text-sm uppercase tracking-[0.16em]"
+              onClick={() => {
+                setOpen(false);
+                openSearch();
+              }}
+            >
+              Buscar
+            </button>
             {navLinks.map((c) => (
               <Link
                 key={c.slug}

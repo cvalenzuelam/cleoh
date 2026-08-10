@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { NewsletterSignup } from "@/components/newsletter/NewsletterSignup";
+import { PaymentMethodBadges } from "@/components/layout/PaymentMethodBadges";
 import { SocialIcons } from "@/components/layout/SocialIcons";
 import type { NavLink } from "@/components/layout/SiteHeader";
 import { site } from "@/data/site";
@@ -114,14 +115,19 @@ export function SiteFooter({ navLinks = [] }: { navLinks?: NavLink[] }) {
       </div>
 
       <div className="border-t border-porcelain/10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 text-xs text-porcelain/45 sm:px-6 lg:px-8">
-          <p>© {new Date().getFullYear()} Cleoh Lencería</p>
-          <Link
-            href="/politicas"
-            className="shrink-0 transition-colors hover:text-porcelain/70"
-          >
-            Aviso de privacidad
-          </Link>
+        <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
+            <p className="text-xs text-porcelain/45">
+              © {new Date().getFullYear()} Cleoh Lencería
+            </p>
+            <PaymentMethodBadges tone="light" />
+            <Link
+              href="/politicas"
+              className="shrink-0 text-xs text-porcelain/45 transition-colors hover:text-porcelain/70"
+            >
+              Aviso de privacidad
+            </Link>
+          </div>
         </div>
       </div>
     </footer>

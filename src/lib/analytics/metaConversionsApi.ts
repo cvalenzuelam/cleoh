@@ -1,6 +1,7 @@
 import "server-only";
 
 import crypto from "crypto";
+import { cleanEnv } from "@/lib/env/clean";
 
 const GRAPH_VERSION = "v21.0";
 
@@ -28,8 +29,8 @@ export async function sendMetaPurchaseCapiEvent(input: {
   currency: string;
   items: PurchaseItem[];
 }) {
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID;
-  const accessToken = process.env.META_CAPI_ACCESS_TOKEN;
+  const pixelId = cleanEnv(process.env.NEXT_PUBLIC_META_PIXEL_ID);
+  const accessToken = cleanEnv(process.env.META_CAPI_ACCESS_TOKEN);
   if (!pixelId || !accessToken) return { sent: false as const, reason: "missing_config" as const };
 
   const userData: Record<string, string[]> = {};

@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { SizeGuidePreview } from "@/components/product/SizeGuidePreview";
@@ -102,11 +101,7 @@ export function ProductPurchase({ product, sizes }: Props) {
         } (stock de esta talla: ${stock}).`,
       );
     } else {
-      setMessage(
-        result.added === 1
-          ? "Agregado al carrito."
-          : `Agregaste ${result.added} piezas al carrito.`,
-      );
+      setMessage(null);
     }
 
     setJustAdded(true);
@@ -246,27 +241,7 @@ export function ProductPurchase({ product, sizes }: Props) {
 
       {message && (
         <div className="mt-5 animate-fade-up" role="status">
-          {message.startsWith("Agregad") || message.startsWith("Solo pudimos") ? (
-            <>
-              <p className="animate-fade-up text-sm text-ink-soft">{message}</p>
-              <div className="mt-4 flex flex-wrap gap-3">
-                <Link
-                  href="/checkout"
-                  className="btn btn-primary animate-fade-up-delay"
-                >
-                  Ir al checkout
-                </Link>
-                <Link
-                  href="/carrito"
-                  className="btn btn-secondary animate-fade-up-delay-2"
-                >
-                  Ver carrito
-                </Link>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-ink-soft">{message}</p>
-          )}
+          <p className="text-sm text-ink-soft">{message}</p>
         </div>
       )}
     </div>

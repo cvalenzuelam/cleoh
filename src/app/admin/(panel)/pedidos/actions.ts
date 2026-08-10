@@ -8,6 +8,8 @@ import {
 } from "@/lib/email/orders";
 import { refundMercadoPagoPayment } from "@/lib/mercadopago/client";
 import { refundPayPalCapture } from "@/lib/paypal/client";
+import { markOrderPaid } from "@/lib/orders/create";
+import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
 import {
   calculateRefundAmountCents,
   type RefundLineInput,
@@ -72,6 +74,99 @@ function validateTracking(input: {
     trackingCode,
     trackingUrl: parsed.toString(),
   };
+}
+
+export async function markSpeiOrderPaid(
+  orderId: string,
+): Promise<OrderActionState> {
+  try {
+    await requireAdmin();
+    const supabase = createServiceClient();
+
+    const { data: order, error: fetchError } = await supabase
+      .from("orders")
+      .select("id, order_number, status, payment_method")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (fetchError || !order) {
+      return { error: "Pedido no encontrado." };
+    }
+
+    if (order.payment_method !== PAYMENT_METHODS.spei) {
+      return { error: "Este pedido no es por transferencia SPEI." };
+    }
+
+    if (order.status === "paid" || order.status === "fulfilled") {
+      return { error: "Este pedido ya está pagado." };
+    }
+
+    if (order.status !== "pending") {
+      return { error: "Solo se pueden validar pedidos pendientes." };
+    }
+
+    const result = await markOrderPaid({
+      orderNumber: order.order_number,
+      paymentId: `spei-validated-${order.id}`,
+    });
+
+    if ("error" in result && result.error) {
+      return { error: result.error };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/pedidos");
+    revalidatePath(`/admin/pedidos/${orderId}`);
+    return { ok: true };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "No se pudo validar el pago.",
+    };
+  }
+}
+
+export async function cancelPendingOrder(
+  orderId: string,
+): Promise<OrderActionState> {
+  try {
+    await requireAdmin();
+    const supabase = createServiceClient();
+
+    const { data: order, error: fetchError } = await supabase
+      .from("orders")
+      .select("id, status, payment_method")
+      .eq("id", orderId)
+      .maybeSingle();
+
+    if (fetchError || !order) {
+      return { error: "Pedido no encontrado." };
+    }
+
+    if (order.status !== "pending") {
+      return { error: "Solo se pueden cancelar pedidos pendientes." };
+    }
+
+    const { error } = await supabase
+      .from("orders")
+      .update({
+        status: "cancelled",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", orderId);
+
+    if (error) {
+      return { error: error.message };
+    }
+
+    revalidatePath("/admin");
+    revalidatePath("/admin/pedidos");
+    revalidatePath(`/admin/pedidos/${orderId}`);
+    return { ok: true };
+  } catch (e) {
+    return {
+      error: e instanceof Error ? e.message : "No se pudo cancelar el pedido.",
+    };
+  }
 }
 
 export async function markOrderFulfilled(

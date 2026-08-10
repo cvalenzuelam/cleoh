@@ -75,17 +75,17 @@ export function CartView() {
           {items.map((item) => (
             <li
               key={item.key}
-              className="flex gap-4 py-6 transition-colors duration-300 hover:bg-petal/40"
+              className="flex gap-5 py-6 transition-colors duration-300 hover:bg-petal/40 sm:gap-6"
             >
               <Link
                 href={`/producto/${item.slug}`}
-                className="relative h-28 w-20 shrink-0 overflow-hidden bg-mist transition-transform duration-300 hover:scale-[1.02] sm:h-36 sm:w-28"
+                className="relative h-48 w-36 shrink-0 overflow-hidden bg-mist transition-transform duration-300 hover:scale-[1.02] sm:h-64 sm:w-48"
               >
                 <Image
                   src={productImage(item.image)}
                   alt={item.name}
                   fill
-                  sizes="112px"
+                  sizes="192px"
                   className="object-cover"
                 />
               </Link>

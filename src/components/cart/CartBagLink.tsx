@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useCart } from "@/components/cart/CartProvider";
 
 function CartIcon({ className }: { className?: string }) {
@@ -27,12 +26,13 @@ function CartIcon({ className }: { className?: string }) {
 }
 
 export function CartBagLink() {
-  const { count, ready, lastAddedAt } = useCart();
+  const { count, ready, lastAddedAt, openCart } = useCart();
   const bumpKey = lastAddedAt || "idle";
 
   return (
-    <Link
-      href="/carrito"
+    <button
+      type="button"
+      onClick={openCart}
       className="cart-bag-link pressable group relative inline-flex items-center text-ink"
       aria-label={`Carrito${ready ? `, ${count} artículos` : ""}`}
     >
@@ -56,6 +56,6 @@ export function CartBagLink() {
           </span>
         )}
       </span>
-    </Link>
+    </button>
   );
 }

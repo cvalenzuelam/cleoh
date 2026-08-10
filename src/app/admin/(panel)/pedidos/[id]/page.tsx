@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { OrderPaymentActions } from "@/components/admin/OrderPaymentActions";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 import { OrderStatusActions } from "@/components/admin/OrderStatusActions";
 import {
@@ -8,6 +9,7 @@ import {
   orderStatusBadgeClass,
   orderStatusLabel,
 } from "@/lib/orders/format";
+import { paymentMethodLabel, resolvePaymentMethod } from "@/lib/orders/payment-method";
 import { sizeDisplayName } from "@/lib/admin/products";
 import { createServiceClient } from "@/lib/supabase/server";
 
@@ -34,7 +36,7 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, created_at",
+      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, payment_method, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -50,7 +52,10 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
 
   const address = (order.shipping_address ?? {}) as Address;
 
-  const paymentLabel = order.paypal_order_id ? "PayPal" : "Mercado Pago";
+  const paymentLabel = paymentMethodLabel(order.payment_method, {
+    paypalOrderId: order.paypal_order_id,
+  });
+  const paymentMethod = resolvePaymentMethod(order);
 
   return (
     <>
@@ -190,44 +195,63 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
             </div>
           </section>
 
+          <section className="rounded-lg border border-zinc-200 bg-white p-5">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Pago
+            </h2>
+            <div className="mt-3 space-y-3">
+              <p className="text-sm text-zinc-700">{paymentLabel}</p>
+              <OrderPaymentActions
+                orderId={order.id}
+                status={order.status}
+                paymentMethod={order.payment_method}
+              />
+              <div className="space-y-1 text-sm text-zinc-500">
+                {order.paypal_order_id ? (
+                  <>
+                    <p>PayPal order: {order.paypal_order_id}</p>
+                    {order.mp_payment_id ? (
+                      <p>PayPal capture: {order.mp_payment_id}</p>
+                    ) : null}
+                  </>
+                ) : order.mp_payment_id ? (
+                  <p>Mercado Pago: {order.mp_payment_id}</p>
+                ) : order.payment_method === "spei" ? (
+                  <p>Esperando comprobante por Instagram.</p>
+                ) : (
+                  <p>Sin referencia de pago aún.</p>
+                )}
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-lg border border-zinc-200 bg-white p-5 lg:col-span-2">
             <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
               Reembolso
             </h2>
             <p className="mt-1 text-xs text-zinc-400">
-              Emite un reembolso total o parcial del pedido.
+              {paymentMethod === "spei"
+                ? "Los reembolsos por transferencia se gestionan manualmente desde tu banco."
+                : "Emite un reembolso total o parcial del pedido."}
             </p>
             <div className="mt-3">
-              <OrderRefundPanel
-                orderId={order.id}
-                status={order.status}
-                subtotalCents={order.subtotal_cents}
-                discountCents={order.discount_cents}
-                shippingCents={order.shipping_cents}
-                totalCents={order.total_cents}
-                refundedCents={order.refunded_cents ?? 0}
-                paymentLabel={paymentLabel}
-                items={items ?? []}
-              />
-            </div>
-          </section>
-
-          <section className="rounded-lg border border-zinc-200 bg-white p-5 text-sm text-zinc-500">
-            <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
-              Pago
-            </h2>
-            <div className="mt-3 space-y-1">
-              {order.paypal_order_id ? (
-                <>
-                  <p>PayPal order: {order.paypal_order_id}</p>
-                  {order.mp_payment_id ? (
-                    <p>PayPal capture: {order.mp_payment_id}</p>
-                  ) : null}
-                </>
-              ) : order.mp_payment_id ? (
-                <p>Mercado Pago: {order.mp_payment_id}</p>
+              {paymentMethod === "spei" ? (
+                <p className="text-sm text-zinc-500">
+                  Si necesitas devolver el dinero, transfiérelo al cliente y
+                  marca el pedido como cancelado o contáctalo por correo.
+                </p>
               ) : (
-                <p>Sin referencia de pago aún.</p>
+                <OrderRefundPanel
+                  orderId={order.id}
+                  status={order.status}
+                  subtotalCents={order.subtotal_cents}
+                  discountCents={order.discount_cents}
+                  shippingCents={order.shipping_cents}
+                  totalCents={order.total_cents}
+                  refundedCents={order.refunded_cents ?? 0}
+                  paymentLabel={paymentLabel}
+                  items={items ?? []}
+                />
               )}
             </div>
           </section>

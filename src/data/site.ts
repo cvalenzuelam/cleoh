@@ -27,7 +27,8 @@ export const site = {
     "Envío a todo México con Estafeta y DHL",
   ],
   social: {
-    instagram: "https://www.instagram.com/cleoh.mex/",
+    instagram: "https://www.instagram.com/cleoh_lenceria/",
+    instagramHandle: "@cleoh_lenceria",
     facebook: "https://www.facebook.com/CLEOH-102822385142172",
   },
   shippingNote:

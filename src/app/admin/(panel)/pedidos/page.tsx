@@ -6,6 +6,7 @@ import {
   orderStatusBadgeClass,
   orderStatusLabel,
 } from "@/lib/orders/format";
+import { paymentMethodLabel } from "@/lib/orders/payment-method";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -15,7 +16,7 @@ export default async function AdminPedidosPage() {
   const { data: orders, error } = await supabase
     .from("orders")
     .select(
-      "id, order_number, customer_name, email, total_cents, status, created_at, mp_payment_id",
+      "id, order_number, customer_name, email, total_cents, status, payment_method, created_at, mp_payment_id",
     )
     .order("created_at", { ascending: false })
     .limit(100);
@@ -24,7 +25,7 @@ export default async function AdminPedidosPage() {
     <>
       <AdminPageHeader
         title="Pedidos"
-        description="Estados: pending → paid → fulfilled. Actualizados por webhook de Mercado Pago."
+        description="Estados: pending → paid → fulfilled. PayPal, Mercado Pago y transferencias SPEI."
         icon={<IconReceipt className="h-[18px] w-[18px]" />}
       />
 
@@ -34,7 +35,7 @@ export default async function AdminPedidosPage() {
         </p>
       ) : !orders?.length ? (
         <p className="rounded-lg border border-zinc-200 bg-white px-4 py-8 text-center text-sm text-zinc-500">
-          Aún no hay pedidos. Se crean al iniciar checkout con Mercado Pago.
+          Aún no hay pedidos. Se crean al iniciar checkout.
         </p>
       ) : (
         <div className="overflow-hidden rounded-lg border border-zinc-200 bg-white">
@@ -58,7 +59,11 @@ export default async function AdminPedidosPage() {
                     >
                       {o.order_number}
                     </Link>
-                    {o.mp_payment_id ? (
+                    {o.payment_method === "spei" ? (
+                      <span className="mt-0.5 block text-[0.65rem] font-normal text-amber-700">
+                        {paymentMethodLabel(o.payment_method)}
+                      </span>
+                    ) : o.mp_payment_id ? (
                       <span className="mt-0.5 block text-[0.65rem] font-normal text-zinc-400">
                         MP {o.mp_payment_id}
                       </span>

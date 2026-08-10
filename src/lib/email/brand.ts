@@ -162,7 +162,7 @@ export function emailFooter(homeUrl: string) {
           Con cariño,<br />el equipo Cleoh
         </p>
         <p style="margin:16px 0 0;font-family:${body};font-size:11px;font-weight:400;letter-spacing:0.08em;">
-          <a href="${instagram}" style="color:${rose};text-decoration:none;">@cleoh.mex</a>
+          <a href="${instagram}" style="color:${rose};text-decoration:none;">${escapeHtml(site.social.instagramHandle)}</a>
         </p>
       </td>
     </tr>`;
