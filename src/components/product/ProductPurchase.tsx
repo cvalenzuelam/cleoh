@@ -99,7 +99,7 @@ export function ProductPurchase({ product, sizes }: Props) {
                 }`}
               >
                 {sizeLabel(s)}
-                {disabled ? " · agotado" : low ? " · pocas" : ""}
+                {disabled ? " · agotado" : ""}
               </button>
             );
           })}
