@@ -189,13 +189,16 @@ export function NewsletterModal() {
     open && mounted
       ? createPortal(
           <div className="pointer-events-none fixed inset-0 z-[90] flex items-center justify-center p-4 sm:p-6">
-            <div
-              className="absolute inset-0 bg-ink/30 pointer-events-none"
-              aria-hidden
+            <button
+              type="button"
+              aria-label="Cerrar"
+              onClick={handleDismiss}
+              className="absolute inset-0 cursor-default bg-ink/30 pointer-events-auto"
             />
             <div
               role="dialog"
               aria-labelledby={titleId}
+              aria-modal="true"
               className="relative pointer-events-auto w-full max-w-md animate-fade-up bg-porcelain shadow-[0_24px_80px_rgba(26,20,22,0.18)] sm:rounded-sm"
             >
               <div className="relative border-b border-line px-5 py-4 sm:px-6">
