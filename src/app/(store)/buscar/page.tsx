@@ -59,7 +59,7 @@ export default async function BuscarPage({ searchParams }: Props) {
       <form
         action="/buscar"
         method="get"
-        className="mt-8 flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center"
+        className="animate-fade-up-delay mt-8 flex max-w-xl flex-col gap-3 sm:flex-row sm:items-center"
       >
         <input
           type="search"
@@ -77,14 +77,14 @@ export default async function BuscarPage({ searchParams }: Props) {
       </form>
 
       {term.length < 2 ? (
-        <div className="mt-12 max-w-xl text-sm text-ink-soft">
+        <div className="animate-fade-up-delay-2 mt-12 max-w-xl text-sm text-ink-soft">
           <p>Escribe al menos 2 caracteres para buscar en la colección.</p>
           {featured.length > 0 && (
             <section className="mt-10">
               <p className="text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ink-soft">
                 Te puede interesar
               </p>
-              <div className="mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3">
+              <div className="stagger-grid mt-6 grid grid-cols-2 gap-x-3 gap-y-8 sm:grid-cols-3">
                 {featured.map((product, i) => (
                   <ProductCard
                     key={product.id}
@@ -99,7 +99,7 @@ export default async function BuscarPage({ searchParams }: Props) {
             <p className="text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ink-soft">
               Explora
             </p>
-            <ul className="mt-3 flex flex-wrap gap-2">
+            <ul className="stagger-list mt-3 flex flex-wrap gap-2">
               {exploreLinks.map((link) => (
                 <li key={link.slug}>
                   <Link href={`/categoria/${link.slug}`} className="chip">
@@ -114,7 +114,7 @@ export default async function BuscarPage({ searchParams }: Props) {
           </section>
         </div>
       ) : products.length === 0 ? (
-        <div className="mt-12">
+        <div className="animate-fade-up-delay-2 mt-12">
           <p className="text-sm text-ink-soft">
             No encontramos piezas para &ldquo;{term}&rdquo;. Quizá te interesa:
           </p>

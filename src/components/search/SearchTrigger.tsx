@@ -39,8 +39,8 @@ export function SearchTrigger({ className }: { className?: string }) {
       className={`pressable group inline-flex items-center text-ink ${className ?? ""}`}
       aria-label="Buscar productos"
     >
-      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full transition-colors duration-300 group-hover:bg-petal">
-        <SearchIcon />
+      <span className="inline-flex h-9 w-9 items-center justify-center rounded-full transition-all duration-300 group-hover:bg-petal group-hover:scale-105">
+        <SearchIcon className="transition-transform duration-300 group-hover:scale-110" />
       </span>
     </button>
   );

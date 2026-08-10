@@ -57,7 +57,7 @@ export function BankTransferCheckout({
   }, [blockPay, onBlockedPay, onSubmit, selected]);
 
   return (
-    <div className="rounded-sm border border-line/80 bg-porcelain/40 px-4 py-5">
+    <div className="animate-fade-up rounded-sm border border-line/80 bg-porcelain/40 px-4 py-5">
       <h3 className="font-display text-lg tracking-wide text-ink">
         Depósito y transferencia ✨
       </h3>
@@ -85,9 +85,11 @@ export function BankTransferCheckout({
             <button
               type="button"
               onClick={() => void copyAccount()}
-              className="text-[0.6rem] uppercase tracking-[0.14em] text-rose underline-offset-2 hover:underline"
+              className={`pressable text-[0.6rem] uppercase tracking-[0.14em] transition-colors duration-200 ${
+                copied ? "text-ink" : "text-rose underline-offset-2 hover:underline"
+              }`}
             >
-              {copied ? "Copiado" : "Copiar"}
+              {copied ? "Copiado ✓" : "Copiar"}
             </button>
           </dd>
         </div>
@@ -129,7 +131,7 @@ export function BankTransferCheckout({
       </label>
 
       {error ? (
-        <p className="mt-3 text-center text-xs text-rose" role="alert">
+        <p className="animate-fade-up mt-3 text-center text-xs text-rose" role="alert">
           {error}
         </p>
       ) : null}

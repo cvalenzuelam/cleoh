@@ -84,11 +84,14 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
 
   if (loading) {
     return (
-      <div className="border-t border-line px-5 py-6">
+      <div className="animate-fade-up border-t border-line px-5 py-6">
         <p className="text-[0.65rem] uppercase tracking-[0.18em] text-ink-soft">
           Sugerencias
         </p>
-        <p className="mt-2 text-xs text-ink-soft">Cargando…</p>
+        <div className="mt-4 flex gap-3">
+          <div className="content-shimmer aspect-[3/4] w-[42%] shrink-0 sm:w-[38%]" />
+          <div className="content-shimmer aspect-[3/4] w-[42%] shrink-0 sm:w-[38%]" />
+        </div>
       </div>
     );
   }
@@ -100,7 +103,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
   ).length;
 
   return (
-    <div className="border-t border-line px-5 py-6">
+    <div className="animate-fade-up border-t border-line px-5 py-6">
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-[0.65rem] uppercase tracking-[0.18em] text-rose">
@@ -117,7 +120,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
             <button
               type="button"
               onClick={() => scrollBy(-1)}
-              className="flex h-8 w-8 items-center justify-center border border-line text-ink transition-colors hover:bg-petal"
+              className="pressable flex h-8 w-8 items-center justify-center border border-line text-ink transition-colors hover:bg-petal"
               aria-label="Anterior"
             >
               ‹
@@ -125,7 +128,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
             <button
               type="button"
               onClick={() => scrollBy(1)}
-              className="flex h-8 w-8 items-center justify-center border border-line text-ink transition-colors hover:bg-petal"
+              className="pressable flex h-8 w-8 items-center justify-center border border-line text-ink transition-colors hover:bg-petal"
               aria-label="Siguiente"
             >
               ›
@@ -136,7 +139,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
 
       <div
         ref={scroller}
-        className="mt-4 flex gap-3 overflow-x-auto pb-1 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+        className="stagger-grid mt-4 flex gap-3 overflow-x-auto pb-1 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {products.map((p) => (
           <div key={p.id} className="w-[42%] shrink-0 sm:w-[38%]">
@@ -150,7 +153,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
       <Link
         href="/tienda"
         onClick={onNavigate}
-        className="mt-4 inline-block text-[0.65rem] uppercase tracking-[0.16em] text-ink-soft underline decoration-blush underline-offset-4 transition-colors hover:text-ink"
+        className="link-anim mt-4 inline-block text-[0.65rem] uppercase tracking-[0.16em] text-ink-soft underline decoration-blush underline-offset-4 transition-colors hover:text-ink"
       >
         Ver toda la tienda
       </Link>

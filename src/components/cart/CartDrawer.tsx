@@ -118,7 +118,7 @@ export function CartDrawer() {
         type="button"
         aria-label="Cerrar carrito"
         onClick={closeCart}
-        className="press-ignore pointer-events-auto absolute inset-0 cursor-default bg-ink/35 transition-opacity"
+        className="overlay-fade-in press-ignore pointer-events-auto absolute inset-0 cursor-default bg-ink/35 transition-opacity"
       />
       <div
         ref={panelRef}
@@ -127,7 +127,7 @@ export function CartDrawer() {
         aria-labelledby={titleId}
         className="cart-drawer-panel pointer-events-auto absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-porcelain shadow-[-8px_0_40px_rgba(26,20,22,0.12)]"
       >
-        <header className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4">
+        <header className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4 animate-fade-up">
           <h2
             id={titleId}
             className="font-display text-xl tracking-wide text-ink sm:text-2xl"
@@ -149,13 +149,15 @@ export function CartDrawer() {
             Cargando carrito…
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center">
-            <EmptyBagIllustration className="h-36 w-auto" />
-            <p className="mt-6 text-sm text-ink-soft">Tu carrito está vacío.</p>
+          <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center animate-fade-up">
+            <EmptyBagIllustration className="animate-fade-up-delay h-36 w-auto" />
+            <p className="animate-fade-up-delay-2 mt-6 text-sm text-ink-soft">
+              Tu carrito está vacío.
+            </p>
             <Link
               href="/tienda"
               onClick={closeCart}
-              className="btn btn-primary mt-6"
+              className="btn btn-primary animate-fade-up-delay-2 mt-6"
             >
               Ir a la tienda
             </Link>
@@ -168,12 +170,12 @@ export function CartDrawer() {
               </div>
 
               {featured ? (
-                <div className="mt-5 border-b border-line px-5 pb-5">
+                <div className="cart-added-feature mt-5 border-b border-line px-5 pb-5">
                   <div className="flex gap-4">
                     <Link
                       href={`/producto/${featured.slug}`}
                       onClick={closeCart}
-                      className={CART_THUMB_CLASS}
+                      className={`${CART_THUMB_CLASS} transition-transform duration-300 hover:scale-[1.02]`}
                     >
                       <Image
                         src={productImage(featured.image)}
@@ -204,13 +206,13 @@ export function CartDrawer() {
               ) : null}
 
               {otherItems.length > 0 ? (
-                <ul className="divide-y divide-line border-b border-line px-5">
+                <ul className="stagger-list divide-y divide-line border-b border-line px-5">
                   {otherItems.map((item) => (
                     <li key={item.key} className="flex items-start gap-4 py-4">
                       <Link
                         href={`/producto/${item.slug}`}
                         onClick={closeCart}
-                        className={CART_THUMB_CLASS}
+                        className={`${CART_THUMB_CLASS} transition-transform duration-300 hover:scale-[1.02]`}
                       >
                         <Image
                           src={productImage(item.image)}
@@ -272,7 +274,7 @@ export function CartDrawer() {
                           <button
                             type="button"
                             onClick={() => removeItem(item.key)}
-                            className="text-[0.6rem] uppercase tracking-[0.12em] text-ink-soft hover:text-ink"
+                            className="link-anim text-[0.6rem] uppercase tracking-[0.12em] text-ink-soft"
                           >
                             Quitar
                           </button>
@@ -292,7 +294,7 @@ export function CartDrawer() {
               />
             </div>
 
-            <footer className="shrink-0 border-t border-line bg-porcelain px-5 py-5">
+            <footer className="shrink-0 border-t border-line bg-porcelain px-5 py-5 animate-fade-up-delay">
               <div className="flex justify-between text-sm">
                 <span className="text-ink-soft">
                   Subtotal · {count}{" "}

@@ -6,6 +6,8 @@ export type FaqItem = {
 };
 
 export type PolicySection = {
+  /** Ancla para enlaces del footer (ej. /politicas#privacidad). */
+  id?: string;
   title: string;
   paragraphs: string[];
   bullets?: string[];

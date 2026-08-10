@@ -20,7 +20,7 @@ export function SearchDiscoverStrip({
       <p className="text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ink-soft">
         Descubre por categoría
       </p>
-      <ul className="search-discover-track mt-3 flex gap-3 sm:gap-4">
+      <ul className="search-discover-track search-discover-stagger mt-3 flex gap-3 sm:gap-4">
         {categories.map((cat) => (
           <li key={cat.slug} className="shrink-0 snap-start">
             <Link

@@ -28,8 +28,8 @@ export function SearchProductRow({
     >
       <button
         type="button"
-        className={`search-result-row pressable flex w-full items-center gap-3 py-3 text-left transition-colors ${
-          active ? "bg-petal" : "hover:bg-petal/60"
+        className={`search-result-row pressable flex w-full items-center gap-3 py-3 text-left transition-colors duration-200 ${
+          active ? "bg-petal text-rose" : "hover:bg-petal/60"
         }`}
         onClick={onSelect}
         onMouseEnter={onHover}
@@ -40,7 +40,7 @@ export function SearchProductRow({
             alt=""
             fill
             sizes="44px"
-            className="object-cover"
+            className="object-cover transition-transform duration-300"
           />
         </span>
         <span className="min-w-0 flex-1">

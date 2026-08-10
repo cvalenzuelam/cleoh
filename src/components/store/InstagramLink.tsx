@@ -6,7 +6,7 @@ type Props = {
 
 /** Enlace a la cuenta oficial de Cleoh; texto visible siempre «Instagram». */
 export function InstagramLink({
-  className = "text-ink underline-offset-2 hover:underline",
+  className = "link-anim text-ink",
 }: Props) {
   return (
     <a

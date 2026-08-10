@@ -264,6 +264,68 @@ body {
   animation: search-panel-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+@keyframes overlay-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.overlay-fade-in {
+  animation: overlay-fade-in 0.28s ease-out both;
+}
+
+@keyframes search-loading-pulse {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.search-loading {
+  animation: search-loading-pulse 1.15s ease-in-out infinite;
+}
+
+.search-discover-stagger > li {
+  animation: stagger-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.search-discover-stagger > li:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.search-discover-stagger > li:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.search-discover-stagger > li:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.search-discover-stagger > li:nth-child(4) {
+  animation-delay: 0.16s;
+}
+.search-discover-stagger > li:nth-child(5) {
+  animation-delay: 0.2s;
+}
+.search-discover-stagger > li:nth-child(6) {
+  animation-delay: 0.24s;
+}
+.search-discover-stagger > li:nth-child(n + 7) {
+  animation-delay: 0.28s;
+}
+
+.search-result-row img {
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.search-result-row:hover img,
+.search-result-row:focus-visible img {
+  transform: scale(1.05);
+}
+
 .search-input {
   width: 100%;
   border: none;
@@ -435,6 +497,69 @@ body {
 
 .cart-drawer-panel {
   animation: cart-drawer-in 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@keyframes cart-added-feature {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.cart-added-feature {
+  animation: cart-added-feature 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes content-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.content-shimmer {
+  background: linear-gradient(
+    110deg,
+    var(--cleoh-petal) 25%,
+    #fff 45%,
+    var(--cleoh-petal) 65%
+  );
+  background-size: 200% 100%;
+  animation: content-shimmer 1.4s ease-in-out infinite;
+}
+
+.payment-badge {
+  transition:
+    transform 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.28s ease;
+}
+
+.payment-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(26, 20, 22, 0.12);
+}
+
+.payment-badges-stagger > * {
+  animation: stagger-in 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.payment-badges-stagger > *:nth-child(1) {
+  animation-delay: 0.04s;
+}
+.payment-badges-stagger > *:nth-child(2) {
+  animation-delay: 0.08s;
+}
+.payment-badges-stagger > *:nth-child(3) {
+  animation-delay: 0.12s;
+}
+.payment-badges-stagger > *:nth-child(4) {
+  animation-delay: 0.16s;
 }
 
 /* ------------------------------------------------------------------ */
@@ -1054,6 +1179,12 @@ body {
   .stagger-list > *,
   .mobile-nav-panel,
   .search-panel,
+  .overlay-fade-in,
+  .search-loading,
+  .search-discover-stagger > li,
+  .cart-added-feature,
+  .content-shimmer,
+  .payment-badges-stagger > *,
   .chip-active,
   .select-option-active,
   .empty-bag-float,
@@ -1085,6 +1216,9 @@ body {
   .btn-light:hover:not(:disabled),
   .btn-light:active:not(:disabled),
   .product-card-link:hover,
+  .payment-badge:hover,
+  .search-result-row:hover img,
+  .search-result-row:focus-visible img,
   :is(.btn, .pressable, .chip):not(:disabled):active,
   .storefront button:not(:disabled):active,
   .pressable:active {

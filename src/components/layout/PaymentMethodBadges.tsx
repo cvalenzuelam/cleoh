@@ -52,7 +52,7 @@ function PaymentCard({ badge }: { badge: Badge }) {
 
   return (
     <span
-      className={`inline-flex h-7 ${widthClass} ${badge.padClass ?? ""} shrink-0 overflow-hidden rounded-[4px] bg-white shadow-sm ring-1 ring-black/8`}
+      className={`payment-badge inline-flex h-7 ${widthClass} ${badge.padClass ?? ""} shrink-0 overflow-hidden rounded-[4px] bg-white shadow-sm ring-1 ring-black/8`}
     >
       <img
         src={badge.src}
@@ -80,7 +80,7 @@ export function PaymentMethodBadges({ tone = "light", className = "" }: Props) {
         <LockIcon className="shrink-0" />
         Pago seguro
       </p>
-      <div className="flex flex-wrap items-center justify-center gap-1.5">
+      <div className="payment-badges-stagger flex flex-wrap items-center justify-center gap-1.5">
         {BADGES.map((badge) => (
           <PaymentCard key={badge.alt} badge={badge} />
         ))}

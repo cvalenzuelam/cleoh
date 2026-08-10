@@ -220,7 +220,7 @@ export function SearchPanel({
     <div className="fixed inset-0 z-[60]">
       <button
         type="button"
-        className="absolute inset-0 bg-ink/20 backdrop-blur-[1px]"
+        className="overlay-fade-in absolute inset-0 bg-ink/20 backdrop-blur-[1px] transition-opacity"
         aria-label="Cerrar búsqueda"
         onClick={closeSearch}
       />
@@ -275,7 +275,7 @@ export function SearchPanel({
           <div ref={listRef} className="mt-4 max-h-[min(52vh,480px)] overflow-y-auto">
             {trimmed.length < 2 ? (
               suggestedProducts.length > 0 ? (
-                <section>
+                <section className="animate-fade-up-delay">
                   <p className="text-[0.62rem] font-medium uppercase tracking-[0.2em] text-ink-soft">
                     Te puede interesar
                   </p>
@@ -283,7 +283,7 @@ export function SearchPanel({
                     id={listboxId}
                     role="listbox"
                     aria-label="Productos sugeridos"
-                    className="mt-3 divide-y divide-line"
+                    className="stagger-list mt-3 divide-y divide-line"
                   >
                     {suggestedProducts.map((hit, index) => (
                       <SearchProductRow
@@ -300,9 +300,14 @@ export function SearchPanel({
                 </section>
               ) : null
             ) : loading ? (
-              <p className="py-6 text-sm text-ink-soft">Buscando…</p>
+              <div className="animate-fade-up py-6" aria-live="polite">
+                <div className="content-shimmer h-3 w-32 rounded-full" />
+                <p className="search-loading mt-3 text-sm text-ink-soft">
+                  Buscando…
+                </p>
+              </div>
             ) : results.length === 0 ? (
-              <div className="py-2">
+              <div className="animate-fade-up py-2">
                 <p className="text-sm text-ink-soft">
                   No encontramos piezas para &ldquo;{trimmed}&rdquo;. Quizá te
                   interesa:
@@ -312,7 +317,7 @@ export function SearchPanel({
                     id={listboxId}
                     role="listbox"
                     aria-label="Productos sugeridos"
-                    className="mt-3 divide-y divide-line"
+                    className="stagger-list mt-3 divide-y divide-line"
                   >
                     {suggestedProducts.map((hit, index) => (
                       <SearchProductRow
@@ -333,7 +338,7 @@ export function SearchPanel({
                 id={listboxId}
                 role="listbox"
                 aria-label="Resultados de búsqueda"
-                className="divide-y divide-line"
+                className="stagger-list divide-y divide-line"
               >
                 {results.map((hit, index) => (
                   <SearchProductRow

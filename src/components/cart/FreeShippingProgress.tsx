@@ -23,7 +23,7 @@ export function FreeShippingProgress({
         : "border border-line/80 bg-porcelain p-4";
 
   return (
-    <div className={boxClass}>
+    <div className={`animate-fade-up ${boxClass}`}>
       <div
         className="h-1.5 overflow-hidden rounded-full bg-mist"
         role="progressbar"
@@ -45,7 +45,10 @@ export function FreeShippingProgress({
       </div>
 
       {qualified ? (
-        <p className="mt-3 text-xs leading-relaxed text-ink">
+        <p
+          key="qualified"
+          className="animate-fade-up mt-3 text-xs leading-relaxed text-ink"
+        >
           <span className="font-medium">¡Envío gratis desbloqueado!</span>
           <span className="text-ink-soft">
             {" "}
@@ -54,7 +57,10 @@ export function FreeShippingProgress({
         </p>
       ) : (
         <>
-          <p className="mt-3 text-xs leading-relaxed text-ink">
+          <p
+            key="remaining"
+            className="animate-fade-up mt-3 text-xs leading-relaxed text-ink"
+          >
             Te faltan{" "}
             <span className="font-medium tabular-nums">{remainingLabel}</span>{" "}
             para{" "}
