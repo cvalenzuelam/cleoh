@@ -193,7 +193,7 @@ export function NewsletterModal() {
               type="button"
               aria-label="Cerrar"
               onClick={handleDismiss}
-              className="absolute inset-0 cursor-default bg-ink/30 pointer-events-auto"
+              className="press-ignore absolute inset-0 cursor-default bg-ink/30 pointer-events-auto"
             />
             <div
               role="dialog"
@@ -206,7 +206,7 @@ export function NewsletterModal() {
                   type="button"
                   onClick={handleDismiss}
                   aria-label="Cerrar"
-                  className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-sm text-ink-soft transition-colors hover:bg-petal hover:text-ink sm:right-4 sm:top-4"
+                  className="pressable absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-sm text-ink-soft transition-colors hover:bg-petal hover:text-ink sm:right-4 sm:top-4"
                 >
                   <CloseIcon />
                 </button>

@@ -39,7 +39,7 @@ export function WhatsAppButton() {
       href={buildWhatsAppUrl(DEFAULT_MESSAGE)}
       target="_blank"
       rel="noopener noreferrer"
-      className="fixed bottom-5 right-5 z-[80] flex items-center gap-2.5 rounded-full border border-line bg-porcelain/95 px-4 py-3 text-ink shadow-[0_12px_40px_rgba(26,20,22,0.12)] backdrop-blur-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(26,20,22,0.16)] sm:bottom-6 sm:right-6"
+      className="pressable fixed bottom-5 right-5 z-[80] flex items-center gap-2.5 rounded-full border border-line bg-porcelain/95 px-4 py-3 text-ink shadow-[0_12px_40px_rgba(26,20,22,0.12)] backdrop-blur-sm transition-transform duration-300 hover:-translate-y-0.5 hover:shadow-[0_16px_48px_rgba(26,20,22,0.16)] sm:bottom-6 sm:right-6"
       aria-label="Ayuda por WhatsApp — respuestas automáticas"
     >
       <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[#25D366] text-white">

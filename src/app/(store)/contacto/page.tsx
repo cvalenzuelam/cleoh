@@ -59,7 +59,7 @@ export default function ContactoPage() {
           href={site.social.instagram}
           target="_blank"
           rel="noopener noreferrer"
-          className="group animate-fade-up-delay-2 mt-10 inline-flex items-center gap-3 border border-ink bg-ink px-8 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.2em] text-porcelain transition-all duration-300 hover:border-rose hover:bg-rose hover:shadow-[0_10px_30px_rgba(26,20,22,0.12)]"
+          className="group animate-fade-up-delay-2 pressable mt-10 inline-flex items-center gap-3 border border-ink bg-ink px-8 py-3.5 text-[0.7rem] font-medium uppercase tracking-[0.2em] text-porcelain transition-all duration-300 hover:border-rose hover:bg-rose hover:shadow-[0_10px_30px_rgba(26,20,22,0.12)]"
         >
           <InstagramGlyph className="shrink-0 text-porcelain transition-transform duration-300 group-hover:scale-110" />
           <span className="text-porcelain">Escribir en Instagram</span>

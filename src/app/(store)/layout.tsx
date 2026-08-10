@@ -18,7 +18,7 @@ export default async function StoreLayout({
 
   return (
     <CartProvider>
-      <div className="flex min-h-dvh flex-col">
+      <div className="storefront flex min-h-dvh flex-col">
         <AnnouncementBar />
         <SiteHeader navLinks={navLinks} />
         <main className="flex-1">

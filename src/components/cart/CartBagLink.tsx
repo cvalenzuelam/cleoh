@@ -33,7 +33,7 @@ export function CartBagLink() {
   return (
     <Link
       href="/carrito"
-      className="cart-bag-link group relative inline-flex items-center text-ink"
+      className="cart-bag-link pressable group relative inline-flex items-center text-ink"
       aria-label={`Carrito${ready ? `, ${count} artículos` : ""}`}
     >
       <span
