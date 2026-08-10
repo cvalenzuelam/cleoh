@@ -49,17 +49,18 @@ export function ProductGallery({ name, images }: Props) {
   const lightbox =
     previewOpen && mounted
       ? createPortal(
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-label={`Vista previa · ${name}`}
-            className="fixed inset-0 z-[100] flex items-center justify-center bg-ink/92 p-4 sm:p-8"
-            onClick={() => setPreviewOpen(false)}
-          >
+          <div className="pointer-events-none fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-8">
+            <button
+              type="button"
+              aria-label="Cerrar vista previa"
+              onClick={() => setPreviewOpen(false)}
+              className="overlay-fade-in press-ignore pointer-events-auto absolute inset-0 cursor-default bg-ink/92"
+            />
+
             <button
               type="button"
               onClick={() => setPreviewOpen(false)}
-              className="absolute right-4 top-4 z-10 text-[0.7rem] font-medium uppercase tracking-[0.18em] text-porcelain/80 hover:text-porcelain sm:right-8 sm:top-8"
+              className="pressable pointer-events-auto absolute right-4 top-4 z-10 text-[0.7rem] font-medium uppercase tracking-[0.18em] text-porcelain/80 transition-colors duration-200 hover:text-porcelain sm:right-8 sm:top-8"
             >
               Cerrar
             </button>
@@ -72,7 +73,7 @@ export function ProductGallery({ name, images }: Props) {
                     e.stopPropagation();
                     go(-1);
                   }}
-                  className="absolute left-2 top-1/2 z-10 -translate-y-1/2 px-3 py-4 text-2xl text-porcelain/70 hover:text-porcelain sm:left-6"
+                  className="pressable pointer-events-auto absolute left-2 top-1/2 z-10 -translate-y-1/2 px-3 py-4 text-2xl text-porcelain/70 transition-colors duration-200 hover:text-porcelain sm:left-6"
                   aria-label="Anterior"
                 >
                   ‹
@@ -83,7 +84,7 @@ export function ProductGallery({ name, images }: Props) {
                     e.stopPropagation();
                     go(1);
                   }}
-                  className="absolute right-2 top-1/2 z-10 -translate-y-1/2 px-3 py-4 text-2xl text-porcelain/70 hover:text-porcelain sm:right-6"
+                  className="pressable pointer-events-auto absolute right-2 top-1/2 z-10 -translate-y-1/2 px-3 py-4 text-2xl text-porcelain/70 transition-colors duration-200 hover:text-porcelain sm:right-6"
                   aria-label="Siguiente"
                 >
                   ›
@@ -92,19 +93,20 @@ export function ProductGallery({ name, images }: Props) {
             ) : null}
 
             <div
-              className="relative h-[min(85vh,900px)] w-full max-w-3xl"
+              className="lightbox-content pointer-events-auto relative h-[min(85vh,900px)] w-full max-w-3xl"
               onClick={(e) => e.stopPropagation()}
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
+                key={current}
                 src={current}
                 alt={name}
-                className="h-full w-full object-contain"
+                className="lightbox-image-in h-full w-full object-contain"
               />
             </div>
 
             {gallery.length > 1 ? (
-              <p className="absolute bottom-4 left-1/2 -translate-x-1/2 text-xs tracking-[0.16em] text-porcelain/60">
+              <p className="pointer-events-none absolute bottom-4 left-1/2 -translate-x-1/2 animate-fade-up text-xs tracking-[0.16em] text-porcelain/60">
                 {active + 1} / {gallery.length}
               </p>
             ) : null}
@@ -122,12 +124,13 @@ export function ProductGallery({ name, images }: Props) {
         aria-label={`Ver ${name} en grande`}
       >
         <Image
+          key={active}
           src={current}
           alt={name}
           fill
           priority
           sizes="(max-width: 1024px) 100vw, 50vw"
-          className="object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
+          className="gallery-image-in object-cover transition-transform duration-700 ease-out group-hover:scale-[1.02]"
         />
         <span className="absolute bottom-3 right-3 bg-porcelain/90 px-2.5 py-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-ink opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           Ver
@@ -143,7 +146,7 @@ export function ProductGallery({ name, images }: Props) {
                 onClick={() => setActive(i)}
                 aria-label={`Foto ${i + 1}`}
                 aria-current={i === active ? "true" : undefined}
-                className={`relative block h-20 w-16 overflow-hidden bg-mist ring-1 transition duration-300 ${
+                className={`pressable relative block h-20 w-16 overflow-hidden bg-mist ring-1 transition duration-300 ${
                   i === active
                     ? "scale-105 ring-ink"
                     : "ring-transparent opacity-75 hover:opacity-100"
@@ -154,7 +157,7 @@ export function ProductGallery({ name, images }: Props) {
                   alt=""
                   fill
                   sizes="64px"
-                  className="object-cover"
+                  className="object-cover transition-transform duration-300 hover:scale-105"
                 />
               </button>
             </li>

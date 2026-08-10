@@ -38,18 +38,20 @@ export function SizeGuidePreview({
   const modal =
     open && mounted
       ? createPortal(
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby={titleId}
-            className="fixed inset-0 z-[100] flex items-end justify-center bg-ink/45 p-0 sm:items-center sm:p-6"
-            onClick={() => setOpen(false)}
-          >
+          <div className="pointer-events-none fixed inset-0 z-[100] flex items-end justify-center p-0 sm:items-center sm:p-6">
+            <button
+              type="button"
+              aria-label="Cerrar guía de tallas"
+              onClick={() => setOpen(false)}
+              className="overlay-fade-in press-ignore pointer-events-auto absolute inset-0 cursor-default bg-ink/45"
+            />
             <div
-              className="relative max-h-[min(92vh,720px)] w-full max-w-2xl overflow-y-auto bg-porcelain shadow-[0_24px_80px_rgba(26,20,22,0.18)] sm:rounded-sm"
-              onClick={(e) => e.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby={titleId}
+              className="modal-sheet-panel pointer-events-auto relative max-h-[min(92vh,720px)] w-full max-w-2xl overflow-y-auto bg-porcelain shadow-[0_24px_80px_rgba(26,20,22,0.18)] sm:rounded-sm"
             >
-              <div className="sticky top-0 z-10 flex items-start justify-between gap-4 border-b border-line bg-porcelain/95 px-5 py-4 backdrop-blur-sm sm:px-6">
+              <div className="sticky top-0 z-10 flex animate-fade-up items-start justify-between gap-4 border-b border-line bg-porcelain/95 px-5 py-4 backdrop-blur-sm sm:px-6">
                 <div>
                   <h2
                     id={titleId}
@@ -65,7 +67,7 @@ export function SizeGuidePreview({
                   ref={closeRef}
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="shrink-0 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft transition-colors hover:text-ink"
+                  className="pressable shrink-0 text-[0.65rem] font-medium uppercase tracking-[0.18em] text-ink-soft transition-colors hover:text-ink"
                 >
                   Cerrar
                 </button>

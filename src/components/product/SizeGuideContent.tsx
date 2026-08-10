@@ -11,21 +11,17 @@ export function SizeGuideContent({ compact = false }: Props) {
   return (
     <>
       <p
-        className={
-          compact
-            ? "text-sm leading-relaxed text-ink-soft"
-            : "animate-fade-up-delay mt-4 text-sm leading-relaxed text-ink-soft"
-        }
+        className={`animate-fade-up text-sm leading-relaxed text-ink-soft ${
+          compact ? "" : "mt-4"
+        }`}
       >
         {SIZE_GUIDE_INTRO}
       </p>
 
       <div
-        className={
-          compact
-            ? "mt-5 overflow-x-auto border border-line"
-            : "animate-fade-up-delay-2 mt-10 overflow-x-auto border border-line"
-        }
+        className={`animate-fade-up-delay overflow-x-auto border border-line ${
+          compact ? "mt-5" : "mt-10"
+        }`}
       >
         <table className="w-full min-w-[28rem] text-left text-sm">
           <thead className="bg-petal text-[0.65rem] uppercase tracking-[0.16em]">
@@ -53,11 +49,9 @@ export function SizeGuideContent({ compact = false }: Props) {
       </div>
 
       <p
-        className={
-          compact
-            ? "mt-4 text-sm leading-relaxed text-ink-soft"
-            : "animate-fade-up-delay-2 mt-6 text-sm leading-relaxed text-ink-soft"
-        }
+        className={`animate-fade-up-delay-2 text-sm leading-relaxed text-ink-soft ${
+          compact ? "mt-4" : "mt-6"
+        }`}
       >
         Nota: si el modelo tiene copa, la talla corresponde a copa{" "}
         <span className="text-ink">B–C</span>. No manejamos copa D.

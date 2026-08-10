@@ -184,7 +184,7 @@ export function NewsletterModal() {
               type="button"
               aria-label="Cerrar"
               onClick={handleDismiss}
-              className="press-ignore absolute inset-0 cursor-default bg-ink/30 pointer-events-auto"
+              className="overlay-fade-in press-ignore pointer-events-auto absolute inset-0 cursor-default bg-ink/30"
             />
             <div
               role="dialog"

@@ -18,7 +18,7 @@ export function ProductBadge({ badge, soldOut, className = "" }: Props) {
 
   return (
     <span
-      className={`absolute left-2.5 top-2.5 z-10 bg-porcelain/95 px-2 py-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-ink shadow-sm backdrop-blur-[2px] ${
+      className={`badge-in absolute left-2.5 top-2.5 z-10 bg-porcelain/95 px-2 py-1 text-[0.6rem] font-medium uppercase tracking-[0.14em] text-ink shadow-sm backdrop-blur-[2px] ${
         soldOut ? "text-ink-soft" : ""
       } ${className}`}
     >
