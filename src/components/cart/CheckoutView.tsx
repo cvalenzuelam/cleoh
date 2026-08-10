@@ -1513,6 +1513,10 @@ export function CheckoutView({ shippingMethods }: Props) {
                         onError={onPayError}
                       />
 
+                      <div className="checkout-pay-or" aria-hidden>
+                        <span>o</span>
+                      </div>
+
                       <BankTransferCheckout
                         blockPay={blockPay}
                         onBlockedPay={validateBeforePay}

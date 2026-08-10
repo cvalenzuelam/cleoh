@@ -52,7 +52,7 @@ export default async function CheckoutPendientePage({ searchParams }: Props) {
       {isSpei ? (
         <div className="animate-fade-up-delay-2 mx-auto mt-8 max-w-md rounded-sm border border-line/80 bg-petal/50 px-5 py-5 text-left text-sm">
           <h2 className="font-display text-lg tracking-wide text-ink">
-            Datos de pago — depósito y transferencia ✨
+            Datos de pago — depósito y transferencia
           </h2>
           <dl className="mt-4 space-y-2 text-ink-soft">
             <div className="flex justify-between gap-4">

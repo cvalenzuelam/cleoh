@@ -59,7 +59,7 @@ export function BankTransferCheckout({
   return (
     <div className="animate-fade-up rounded-sm border border-line/80 bg-porcelain/40 px-4 py-5">
       <h3 className="font-display text-lg tracking-wide text-ink">
-        Depósito y transferencia ✨
+        Depósito y transferencia
       </h3>
       <p className="mt-1 text-xs leading-relaxed text-ink-soft">
         Transfiere el total de tu pedido y envía tu comprobante por{" "}
