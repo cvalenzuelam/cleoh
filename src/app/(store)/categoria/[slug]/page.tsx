@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ProductCard } from "@/components/product/ProductCard";
+import { JsonLd } from "@/components/seo/JsonLd";
 import {
   getCategoryBySlug,
   getCategorySlugs,
   getProductsByCategorySlug,
 } from "@/lib/catalog/queries";
+import { breadcrumbJsonLd } from "@/lib/seo/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -38,6 +40,14 @@ export default async function CategoryPage({ params }: Props) {
   const list = await getProductsByCategorySlug(category.slug);
 
   return (
+    <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Inicio", path: "/" },
+          { name: category.name, path: `/categoria/${category.slug}` },
+        ])}
+      />
+
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
       <header className="max-w-xl animate-fade-up">
         <p className="text-[0.65rem] uppercase tracking-[0.22em] text-rose">
@@ -65,5 +75,6 @@ export default async function CategoryPage({ params }: Props) {
         </div>
       )}
     </div>
+    </>
   );
 }

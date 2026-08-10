@@ -18,6 +18,7 @@ type UpsellProduct = {
 type Props = {
   cartProductIds: string[];
   onNavigate: () => void;
+  className?: string;
 };
 
 function toCatalogProduct(p: UpsellProduct): CatalogProduct {
@@ -35,21 +36,18 @@ function toCatalogProduct(p: UpsellProduct): CatalogProduct {
     categorySlug: null,
     categoryName: null,
     sizes: [{ size: "M", stock: 1 }],
+    createdAt: null,
   };
 }
 
-export function CartUpsell({ cartProductIds, onNavigate }: Props) {
+export function CartUpsell({ cartProductIds, onNavigate, className }: Props) {
   const scroller = useRef<HTMLDivElement>(null);
   const [products, setProducts] = useState<UpsellProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const isEmptyCart = cartProductIds.length === 0;
+  const rootClass = `animate-fade-up border-t border-line px-5 py-6${className ? ` ${className}` : ""}`;
 
   useEffect(() => {
-    if (!cartProductIds.length) {
-      setProducts([]);
-      setLoading(false);
-      return;
-    }
-
     let cancelled = false;
     setLoading(true);
 
@@ -84,9 +82,9 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
 
   if (loading) {
     return (
-      <div className="animate-fade-up border-t border-line px-5 py-6">
+      <div className={rootClass}>
         <p className="text-[0.65rem] uppercase tracking-[0.18em] text-ink-soft">
-          Sugerencias
+          {isEmptyCart ? "Inspiración" : "Sugerencias"}
         </p>
         <div className="mt-4 flex gap-3">
           <div className="content-shimmer aspect-[3/4] w-[42%] shrink-0 sm:w-[38%]" />
@@ -103,16 +101,18 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
   ).length;
 
   return (
-    <div className="animate-fade-up border-t border-line px-5 py-6">
+    <div className={rootClass}>
       <div className="flex items-end justify-between gap-3">
         <div>
           <p className="text-[0.65rem] uppercase tracking-[0.18em] text-rose">
-            Completa tu pedido
+            {isEmptyCart ? "Para empezar" : "Completa tu pedido"}
           </p>
           <h3 className="mt-1 font-display text-lg tracking-wide text-ink">
-            {saleCount > 0
-              ? `Ofertas y relacionados · ${products.length}`
-              : "También te puede gustar"}
+            {isEmptyCart
+              ? "Piezas que te encantarán"
+              : saleCount > 0
+                ? `Ofertas y relacionados · ${products.length}`
+                : "También te puede gustar"}
           </h3>
         </div>
         {products.length > 2 ? (
@@ -142,7 +142,7 @@ export function CartUpsell({ cartProductIds, onNavigate }: Props) {
         className="stagger-grid mt-4 flex gap-3 overflow-x-auto pb-1 scroll-smooth [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
       >
         {products.map((p) => (
-          <div key={p.id} className="w-[42%] shrink-0 sm:w-[38%]">
+          <div key={p.id} className="w-[42%] shrink-0 sm:w-[38%] lg:w-[36%]">
             <div onClick={onNavigate}>
               <ProductCard product={toCatalogProduct(p)} />
             </div>

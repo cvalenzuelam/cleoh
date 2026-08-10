@@ -4,7 +4,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useEffect } from "react";
 import { useCart } from "@/components/cart/CartProvider";
-import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
+import { EmptyCartState } from "@/components/cart/EmptyCartState";
 import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { sizeLabel } from "@/lib/admin/products";
 import { CART_LINE_MAX_QTY } from "@/lib/cart/stock-limits";
@@ -29,26 +29,7 @@ export function CartView() {
   }
 
   if (items.length === 0) {
-    return (
-      <div className="mx-auto max-w-xl px-4 py-16 text-center sm:px-6 sm:py-20">
-        <h1 className="animate-fade-up font-display text-4xl tracking-wide text-ink">
-          Carrito
-        </h1>
-        <EmptyBagIllustration className="animate-fade-up-delay mx-auto mt-8 h-44 w-auto sm:h-52" />
-        <p className="animate-fade-up-delay-2 mt-6 text-sm text-ink-soft">
-          Tu carrito está vacío.
-        </p>
-        <p className="animate-fade-up-delay-2 mt-2 text-xs tracking-wide text-ink-soft/80">
-          Aún no hay piezas esperándote aquí.
-        </p>
-        <Link
-          href="/tienda"
-          className="btn btn-primary animate-fade-up-delay-2 mt-8"
-        >
-          Seguir comprando
-        </Link>
-      </div>
-    );
+    return <EmptyCartState variant="page" pageTitle="Carrito" />;
   }
 
   return (

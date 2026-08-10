@@ -5,6 +5,7 @@ import { isProductSoldOut } from "@/components/product/ProductBadge";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductPurchase } from "@/components/product/ProductPurchase";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
+import { JsonLd } from "@/components/seo/JsonLd";
 import {
   getAdjacentProducts,
   getProductBySlug,
@@ -13,6 +14,7 @@ import {
 } from "@/lib/catalog/queries";
 import { badgeLabel, formatPrice, isSalePrice } from "@/lib/catalog/types";
 import { productMetadata } from "@/lib/seo/metadata";
+import { breadcrumbJsonLd, productJsonLd } from "@/lib/seo/json-ld";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -61,7 +63,24 @@ export default async function ProductPage({ params }: Props) {
 
   const soldOut = isProductSoldOut(product);
 
+  const breadcrumbItems = [
+    { name: "Inicio", path: "/" },
+    ...(product.categorySlug && product.categoryName
+      ? [
+          {
+            name: product.categoryName,
+            path: `/categoria/${product.categorySlug}`,
+          },
+        ]
+      : []),
+    { name: product.name, path: `/producto/${product.slug}` },
+  ];
+
   return (
+    <>
+      <JsonLd data={productJsonLd(product)} />
+      <JsonLd data={breadcrumbJsonLd(breadcrumbItems)} />
+
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-soft animate-fade-up">
         <nav aria-label="Ruta" className="min-w-0">
@@ -191,5 +210,6 @@ export default async function ProductPage({ params }: Props) {
 
       <RelatedProducts products={related} />
     </div>
+    </>
   );
 }

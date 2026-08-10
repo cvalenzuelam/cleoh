@@ -64,6 +64,7 @@ O conecta el repo en [vercel.com/new](https://vercel.com/new) y deja que cada pu
 ## Post-deploy
 
 - [ ] Abrir la URL y revisar home / tienda / ficha
+- [ ] **Google Search Console**: [search.google.com/search-console](https://search.google.com/search-console) → agregar propiedad con prefijo `https://lenceriacleoh.com` → método **Etiqueta HTML** → copiar el valor de `content` en la env var `GOOGLE_SITE_VERIFICATION` en Vercel → redeploy → verificar → enviar sitemap `https://lenceriacleoh.com/sitemap.xml`
 - [ ] Login admin `/admin`
 - [ ] Carrito → checkout → PayPal (sandbox o live)
 - [ ] Checkout Mercado Pago

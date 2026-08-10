@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { useCart } from "@/components/cart/CartProvider";
-import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
+import { EmptyCartState } from "@/components/cart/EmptyCartState";
 import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { MercadoPagoWalletBrick } from "@/components/cart/MercadoPagoWalletBrick";
 import { BankTransferCheckout } from "@/components/cart/BankTransferCheckout";
@@ -876,23 +876,7 @@ export function CheckoutView({ shippingMethods }: Props) {
   }
 
   if (items.length === 0) {
-    return (
-      <div className="mx-auto max-w-xl px-4 py-16 text-center sm:py-20">
-        <h1 className="animate-fade-up font-display text-4xl tracking-wide text-ink">
-          Checkout
-        </h1>
-        <EmptyBagIllustration className="animate-fade-up-delay mx-auto mt-8 h-44 w-auto sm:h-52" />
-        <p className="animate-fade-up-delay-2 mt-6 text-sm text-ink-soft">
-          Tu carrito está vacío.
-        </p>
-        <Link
-          href="/tienda"
-          className="btn btn-primary animate-fade-up-delay-2 mt-8"
-        >
-          Ir a la tienda
-        </Link>
-      </div>
-    );
+    return <EmptyCartState variant="page" pageTitle="Checkout" />;
   }
 
   const step1Done = getStep1Issue(formSnapshot) === null;

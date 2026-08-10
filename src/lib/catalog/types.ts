@@ -16,6 +16,8 @@ export type CatalogProduct = {
   categorySlug: string | null;
   categoryName: string | null;
   sizes: { size: string; stock: number }[];
+  /** ISO timestamp para ordenar en catálogo (novedades). */
+  createdAt: string | null;
 };
 
 export type CatalogCategory = {

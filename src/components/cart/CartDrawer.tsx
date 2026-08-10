@@ -5,8 +5,8 @@ import Link from "next/link";
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useCart } from "@/components/cart/CartProvider";
+import { EmptyCartState } from "@/components/cart/EmptyCartState";
 import { CartUpsell } from "@/components/cart/CartUpsell";
-import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
 import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { sizeLabel } from "@/lib/admin/products";
 import { CART_LINE_MAX_QTY } from "@/lib/cart/stock-limits";
@@ -15,7 +15,7 @@ import { productImage } from "@/lib/catalog/types";
 
 /** Mismo tamaño que las cards del carrusel de upsell (42% × aspect 3/4). */
 const CART_THUMB_CLASS =
-  "relative block w-[42%] max-w-[172px] shrink-0 aspect-[3/4] overflow-hidden bg-mist sm:w-[38%]";
+  "relative block w-[42%] max-w-[172px] shrink-0 aspect-[3/4] overflow-hidden bg-mist sm:w-[38%] lg:max-w-[200px] lg:w-[36%]";
 
 function CloseIcon() {
   return (
@@ -125,7 +125,7 @@ export function CartDrawer() {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="cart-drawer-panel pointer-events-auto absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-porcelain shadow-[-8px_0_40px_rgba(26,20,22,0.12)]"
+        className="cart-drawer-panel pointer-events-auto absolute inset-y-0 right-0 flex w-full max-w-md flex-col bg-porcelain shadow-[-8px_0_40px_rgba(26,20,22,0.12)] lg:max-w-xl xl:max-w-2xl"
       >
         <header className="flex shrink-0 items-center justify-between border-b border-line px-5 py-4 animate-fade-up">
           <h2
@@ -149,19 +149,7 @@ export function CartDrawer() {
             Cargando carrito…
           </div>
         ) : items.length === 0 ? (
-          <div className="flex flex-1 flex-col items-center justify-center px-6 py-10 text-center animate-fade-up">
-            <EmptyBagIllustration className="animate-fade-up-delay h-36 w-auto" />
-            <p className="animate-fade-up-delay-2 mt-6 text-sm text-ink-soft">
-              Tu carrito está vacío.
-            </p>
-            <Link
-              href="/tienda"
-              onClick={closeCart}
-              className="btn btn-primary animate-fade-up-delay-2 mt-6"
-            >
-              Ir a la tienda
-            </Link>
-          </div>
+          <EmptyCartState variant="drawer" onNavigate={closeCart} />
         ) : (
           <>
             <div className="flex-1 overflow-y-auto overscroll-contain">

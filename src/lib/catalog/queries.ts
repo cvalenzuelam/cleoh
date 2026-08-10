@@ -33,6 +33,7 @@ type ProductRow = {
   badge: string | null;
   primary_image_url: string | null;
   is_featured: boolean;
+  created_at: string | null;
   categories:
     | { slug: string; name: string }
     | { slug: string; name: string }[]
@@ -86,6 +87,7 @@ function mapProduct(row: ProductRow): CatalogProduct {
     categorySlug: cat?.slug ?? null,
     categoryName: cat?.name ?? null,
     sizes: variants,
+    createdAt: row.created_at,
   };
 }
 
@@ -99,6 +101,7 @@ const productSelect = `
   badge,
   primary_image_url,
   is_featured,
+  created_at,
   categories ( slug, name ),
   product_variants ( size, stock, is_active ),
   product_images ( url, sort_order )

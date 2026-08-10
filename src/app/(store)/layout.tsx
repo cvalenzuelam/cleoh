@@ -9,8 +9,10 @@ import { NewsletterModal } from "@/components/newsletter/NewsletterModal";
 import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { SearchPanel } from "@/components/search/SearchPanel";
 import { SearchProvider } from "@/components/search/SearchProvider";
+import { JsonLd } from "@/components/seo/JsonLd";
 import { getFeaturedProducts, getNavCategories } from "@/lib/catalog/queries";
 import { catalogProductToSearchHit } from "@/lib/search/map";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo/json-ld";
 
 export default async function StoreLayout({
   children,
@@ -30,6 +32,7 @@ export default async function StoreLayout({
   return (
     <CartProvider>
       <SearchProvider>
+        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
         <div className="storefront flex min-h-dvh flex-col">
           <AnnouncementBar />
           <SiteHeader navLinks={navLinks} />
