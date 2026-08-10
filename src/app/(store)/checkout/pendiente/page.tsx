@@ -32,8 +32,9 @@ export default async function CheckoutPendientePage({ searchParams }: Props) {
                 <span className="text-ink">{orderNumber}</span>
               </>
             ) : null}{" "}
-            quedó registrado. Realiza la transferencia y envía tu comprobante
-            para que podamos validarlo.
+            quedó registrado. Te enviamos un correo con los datos bancarios y el
+            resumen. Realiza la transferencia y envía tu comprobante para que
+            podamos validarlo.
           </>
         ) : (
           <>

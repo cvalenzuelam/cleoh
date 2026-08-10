@@ -3,11 +3,16 @@ import "server-only";
 import { sendMetaPurchaseCapiEvent } from "@/lib/analytics/metaConversionsApi";
 import { markAbandonedCartRecovered } from "@/lib/cart/abandon";
 import { site } from "@/data/site";
-import { sendOrderPaidEmail } from "@/lib/email/orders";
+import {
+  sendNewOrderAdminNotifyEmail,
+  sendOrderPaidEmail,
+  sendOrderPendingPaymentEmail,
+} from "@/lib/email/orders";
 import { resolveShippingCents } from "@/lib/shipping/free-shipping";
 import { getShippingMethodById } from "@/lib/shipping/methods";
 import type { ShippingAddress } from "@/lib/shipping/types";
 import type { PaymentMethod } from "@/lib/orders/payment-method";
+import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export type CheckoutLine = {
@@ -309,6 +314,21 @@ export async function createPendingOrder(input: {
     await markAbandonedCartRecovered(input.email);
   } catch (e) {
     console.warn("[abandon] recover on order create failed", e);
+  }
+
+  // Correos al crear el pedido (no bloquean el checkout si fallan).
+  try {
+    await sendNewOrderAdminNotifyEmail(order.id);
+  } catch (e) {
+    console.error("[email] admin notify on create failed", e);
+  }
+
+  if (input.paymentMethod === PAYMENT_METHODS.spei) {
+    try {
+      await sendOrderPendingPaymentEmail(order.id);
+    } catch (e) {
+      console.error("[email] pending payment on create failed", e);
+    }
   }
 
   return {

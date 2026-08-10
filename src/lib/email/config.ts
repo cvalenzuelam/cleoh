@@ -1,6 +1,7 @@
 import "server-only";
 
 import { cleanEnv } from "@/lib/env/clean";
+import { site } from "@/data/site";
 
 export function getEmailConfig() {
   const apiKey = cleanEnv(process.env.RESEND_API_KEY);
@@ -13,5 +14,5 @@ export function getEmailConfig() {
 }
 
 export function getOrderNotifyEmail() {
-  return cleanEnv(process.env.ORDER_NOTIFY_EMAIL);
+  return cleanEnv(process.env.ORDER_NOTIFY_EMAIL) || site.orderNotifyEmail;
 }

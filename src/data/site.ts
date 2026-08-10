@@ -34,6 +34,8 @@ export const site = {
     instagramHandle: "@cleoh_lenceria",
     facebook: "https://www.facebook.com/CLEOH-102822385142172",
   },
+  /** Inbox de pedidos nuevos (fallback si ORDER_NOTIFY_EMAIL no está en env). */
+  orderNotifyEmail: "briciaelizaldes@gmail.com",
   shippingNote:
     "Envíos a todo México con Estafeta y DHL. Detalles al checkout.",
 } as const;
