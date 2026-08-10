@@ -2,15 +2,23 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import { EmptyBagIllustration } from "@/components/cart/EmptyBagIllustration";
 import { FreeShippingProgress } from "@/components/cart/FreeShippingProgress";
 import { sizeLabel } from "@/lib/admin/products";
+import { CART_LINE_MAX_QTY } from "@/lib/cart/stock-limits";
 import { formatCartMoney } from "@/lib/cart/types";
 import { productImage } from "@/lib/catalog/types";
 
 export function CartView() {
-  const { items, subtotal, ready, setQuantity, removeItem, count } = useCart();
+  const { items, subtotal, ready, setQuantity, removeItem, count, syncStock } =
+    useCart();
+
+  useEffect(() => {
+    if (!ready || !items.length) return;
+    void syncStock();
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps -- revalidar al entrar al carrito
 
   if (!ready) {
     return (
@@ -113,8 +121,19 @@ export function CartView() {
                     <button
                       type="button"
                       aria-label="Agregar uno"
+                      disabled={
+                        item.quantity >=
+                        Math.min(CART_LINE_MAX_QTY, item.stock ?? CART_LINE_MAX_QTY)
+                      }
                       onClick={() =>
-                        setQuantity(item.key, Math.min(20, item.quantity + 1))
+                        setQuantity(
+                          item.key,
+                          Math.min(
+                            CART_LINE_MAX_QTY,
+                            item.stock ?? CART_LINE_MAX_QTY,
+                            item.quantity + 1,
+                          ),
+                        )
                       }
                     >
                       +
@@ -128,6 +147,13 @@ export function CartView() {
                     Quitar
                   </button>
                 </div>
+                {item.stock != null && item.quantity >= item.stock ? (
+                  <p className="mt-2 text-xs text-rose" role="status">
+                    {item.stock === 1
+                      ? "Solo queda 1 pieza de esta talla."
+                      : `Máximo ${item.stock} de esta talla.`}
+                  </p>
+                ) : null}
               </div>
             </li>
           ))}

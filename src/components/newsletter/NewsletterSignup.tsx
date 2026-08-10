@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
 import {
   saveCheckoutEmail,
@@ -12,13 +12,22 @@ import {
   markNewsletterSubscribed,
 } from "@/lib/newsletter/client-storage";
 import { site } from "@/data/site";
+import { useResendCooldown } from "@/lib/newsletter/use-resend-cooldown";
 
-const RESEND_COOLDOWN_MS = 45_000;
+const RESEND_COOLDOWN_MS = 15_000;
 
 type Props = {
   source?: string;
   variant?: "footer" | "inline";
 };
+
+function normalizeEmail(value: string) {
+  return value.trim().toLowerCase();
+}
+
+function isValidEmail(value: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeEmail(value));
+}
 
 export function NewsletterSignup({
   source = "footer",
@@ -27,6 +36,7 @@ export function NewsletterSignup({
   const formId = useId();
   const emailId = `${formId}-email`;
   const resendEmailId = `${formId}-resend-email`;
+  const resendInputRef = useRef<HTMLInputElement>(null);
   const { items, ready } = useCart();
   const [mounted, setMounted] = useState(false);
   const [email, setEmail] = useState("");
@@ -40,8 +50,12 @@ export function NewsletterSignup({
   >("idle");
   const [resendError, setResendError] = useState("");
   const [resendCooldownUntil, setResendCooldownUntil] = useState(0);
-  const [showResendEmail, setShowResendEmail] = useState(false);
   const [resendEmail, setResendEmail] = useState("");
+  const {
+    coolingDown,
+    resendLinkLabel,
+    resendButtonLabel,
+  } = useResendCooldown(resendCooldownUntil);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -58,20 +72,6 @@ export function NewsletterSignup({
     });
   }, []);
 
-  useEffect(() => {
-    if (!resendCooldownUntil) return;
-    const remaining = resendCooldownUntil - Date.now();
-    if (remaining <= 0) {
-      setResendCooldownUntil(0);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setResendCooldownUntil(0);
-      setResendStatus("idle");
-    }, remaining);
-    return () => window.clearTimeout(timer);
-  }, [resendCooldownUntil]);
-
   async function subscribe(targetEmail: string) {
     const res = await fetch("/api/newsletter/subscribe", {
       method: "POST",
@@ -86,13 +86,33 @@ export function NewsletterSignup({
     return { res, data };
   }
 
+  function validateSubscribeEmail(value: string) {
+    const normalized = normalizeEmail(value);
+    if (!normalized) {
+      return "Escribe tu correo para recibir el código.";
+    }
+    if (!isValidEmail(normalized)) {
+      return "Escribe un correo válido.";
+    }
+    return null;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError("");
+
+    const validationError = validateSubscribeEmail(email);
+    if (validationError) {
+      setStatus("error");
+      setError(validationError);
+      return;
+    }
+
     setStatus("loading");
 
     try {
-      const { res, data } = await subscribe(email);
+      const normalized = normalizeEmail(email);
+      const { res, data } = await subscribe(normalized);
 
       if (!res.ok || !data.ok) {
         setStatus("error");
@@ -100,12 +120,13 @@ export function NewsletterSignup({
         return;
       }
 
-      const normalized = email.trim().toLowerCase();
       markNewsletterSubscribed(normalized);
       setAlreadySubscribed(true);
       setEmail(normalized);
       setResendEmail(normalized);
       setStatus("success");
+      setResendError("");
+      setResendStatus("idle");
 
       saveCheckoutEmail(normalized);
       if (ready && items.length) {
@@ -117,16 +138,21 @@ export function NewsletterSignup({
     }
   }
 
-  async function handleResend() {
-    const target = (email || resendEmail).trim().toLowerCase();
-    if (!target) {
-      setShowResendEmail(true);
+  async function handleResendSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setResendError("");
+
+    if (coolingDown) return;
+
+    const target = normalizeEmail(resendEmail);
+    const validationError = validateSubscribeEmail(resendEmail);
+    if (validationError) {
+      setResendStatus("error");
+      setResendError(validationError);
+      resendInputRef.current?.focus();
       return;
     }
 
-    if (Date.now() < resendCooldownUntil) return;
-
-    setResendError("");
     setResendStatus("loading");
 
     try {
@@ -141,13 +167,54 @@ export function NewsletterSignup({
       markNewsletterSubscribed(target);
       setEmail(target);
       setResendEmail(target);
-      setResendStatus(data.emailSent ? "sent" : "error");
       if (!data.emailSent) {
+        setResendStatus("error");
         setResendError("No pudimos enviar el correo ahora. Intenta más tarde.");
         return;
       }
+
+      setResendStatus("sent");
       setResendCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
-      setShowResendEmail(false);
+    } catch {
+      setResendStatus("error");
+      setResendError("Error de conexión. Intenta de nuevo.");
+    }
+  }
+
+  async function handleQuickResend() {
+    setResendError("");
+
+    if (coolingDown) return;
+
+    const target = normalizeEmail(email);
+    if (!isValidEmail(target)) {
+      setResendStatus("error");
+      setResendError("No tenemos tu correo guardado. Escríbelo abajo.");
+      resendInputRef.current?.focus();
+      return;
+    }
+
+    setResendStatus("loading");
+
+    try {
+      const { res, data } = await subscribe(target);
+
+      if (!res.ok || !data.ok) {
+        setResendStatus("error");
+        setResendError(data.error ?? "No pudimos reenviar el correo.");
+        return;
+      }
+
+      markNewsletterSubscribed(target);
+      setResendEmail(target);
+      if (!data.emailSent) {
+        setResendStatus("error");
+        setResendError("No pudimos enviar el correo ahora. Intenta más tarde.");
+        return;
+      }
+
+      setResendStatus("sent");
+      setResendCooldownUntil(Date.now() + RESEND_COOLDOWN_MS);
     } catch {
       setResendStatus("error");
       setResendError("Error de conexión. Intenta de nuevo.");
@@ -170,10 +237,21 @@ export function NewsletterSignup({
       variant === "footer" ? "text-porcelain/70" : "text-ink-soft";
     const linkClass =
       variant === "footer"
-        ? "text-porcelain/80 underline-offset-2 transition-colors hover:text-porcelain hover:underline"
-        : "text-ink-soft underline-offset-2 transition-colors hover:text-ink hover:underline";
-    const coolingDown = Date.now() < resendCooldownUntil;
-    const knownEmail = Boolean(email || resendEmail);
+        ? "text-porcelain underline-offset-4 transition-all duration-200 hover:text-porcelain hover:underline active:opacity-80"
+        : "text-ink underline-offset-4 transition-all duration-200 hover:text-rose hover:underline active:opacity-80";
+    const hasStoredEmail = isValidEmail(email);
+    const resendInputClass =
+      variant === "footer"
+        ? "min-w-0 flex-1 border bg-porcelain/10 px-3 py-2 text-sm text-porcelain placeholder:text-porcelain/40 outline-none transition-colors focus:bg-porcelain/15"
+        : "input-soft flex-1 py-2";
+    const resendInputInvalidClass =
+      resendStatus === "error" && resendError
+        ? variant === "footer"
+          ? "border-rose/70 focus:border-rose"
+          : "border-rose focus:border-rose"
+        : variant === "footer"
+          ? "border-porcelain/20 focus:border-porcelain/40"
+          : "";
 
     return (
       <div
@@ -193,65 +271,94 @@ export function NewsletterSignup({
           ¡Listo! Tu código es {site.coupon.code}
         </p>
         <p className={`mt-2 text-sm ${muted}`}>
-          {email ? `También lo enviamos a ${email}. ` : null}
+          {hasStoredEmail ? `También lo enviamos a ${email}. ` : null}
           Escríbelo al pagar en checkout.
         </p>
 
-        <div className="mt-3">
+        <div className="mt-3 space-y-2">
           {resendStatus === "sent" ? (
             <p className={`text-xs ${muted}`} role="status">
-              Listo — revisa tu bandeja (y spam). Puedes reenviar de nuevo en un
-              momento.
+              Listo — revisa tu bandeja (y spam).
             </p>
-          ) : showResendEmail || !knownEmail ? (
-            <div className="flex flex-col gap-2 sm:flex-row sm:items-stretch">
-              <label htmlFor={resendEmailId} className="sr-only">
-                Email para reenviar
-              </label>
-              <input
-                id={resendEmailId}
-                type="email"
-                required
-                autoComplete="email"
-                value={resendEmail}
-                onChange={(e) => setResendEmail(e.target.value)}
-                className={
-                  variant === "footer"
-                    ? "min-w-0 flex-1 border border-porcelain/20 bg-porcelain/10 px-3 py-2 text-sm text-porcelain placeholder:text-porcelain/40 outline-none focus:border-porcelain/40"
-                    : "input-soft flex-1 py-2"
-                }
-                placeholder="tu@email.com"
-                disabled={resendStatus === "loading"}
-              />
-              <button
-                type="button"
-                onClick={handleResend}
-                disabled={resendStatus === "loading" || coolingDown}
-                className={
-                  variant === "footer"
-                    ? "btn btn-light shrink-0 px-4 py-2 text-xs"
-                    : "btn btn-secondary shrink-0 px-4 py-2 text-xs"
-                }
-              >
-                {resendStatus === "loading" ? "Enviando…" : "Reenviar"}
-              </button>
-            </div>
-          ) : (
+          ) : null}
+
+          {hasStoredEmail ? (
             <button
               type="button"
-              onClick={handleResend}
+              onClick={handleQuickResend}
               disabled={resendStatus === "loading" || coolingDown}
-              className={`text-xs ${linkClass} disabled:opacity-50`}
+              className={`pressable text-xs font-semibold ${linkClass} disabled:cursor-not-allowed disabled:opacity-50`}
             >
               {resendStatus === "loading"
                 ? "Reenviando…"
-                : coolingDown
-                  ? "Espera un momento para reenviar"
-                  : "¿No te llegó? Reenviar correo"}
+                : resendLinkLabel}
             </button>
-          )}
+          ) : null}
+
+          <form
+            onSubmit={handleResendSubmit}
+            noValidate
+            className={
+              hasStoredEmail
+                ? "sr-only"
+                : "flex flex-col gap-2 sm:flex-row sm:items-stretch"
+            }
+            aria-hidden={hasStoredEmail}
+          >
+            <label htmlFor={resendEmailId} className="sr-only">
+              Email para reenviar
+            </label>
+            <input
+              ref={resendInputRef}
+              id={resendEmailId}
+              name="email"
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              value={resendEmail}
+              onChange={(e) => {
+                setResendEmail(e.target.value);
+                if (resendError) {
+                  setResendError("");
+                  setResendStatus("idle");
+                }
+              }}
+              className={`${resendInputClass} ${resendInputInvalidClass}`}
+              placeholder="tu@email.com"
+              disabled={resendStatus === "loading" || coolingDown}
+              aria-invalid={resendStatus === "error" && Boolean(resendError)}
+              aria-describedby={
+                resendStatus === "error" && resendError
+                  ? `${resendEmailId}-error`
+                  : undefined
+              }
+            />
+            <button
+              type="submit"
+              disabled={resendStatus === "loading" || coolingDown}
+              className={
+                variant === "footer"
+                  ? "btn btn-light shrink-0 px-4 py-2 text-xs"
+                  : "btn btn-secondary shrink-0 px-4 py-2 text-xs"
+              }
+            >
+              {resendStatus === "loading" ? "Enviando…" : resendButtonLabel}
+            </button>
+          </form>
+
+          {!hasStoredEmail ? (
+            <p className={`text-xs ${muted}`}>
+              Escribe el correo con el que te suscribiste para reenviar el
+              código.
+            </p>
+          ) : null}
+
           {resendStatus === "error" && resendError ? (
-            <p className="mt-2 text-xs text-rose" role="alert">
+            <p
+              id={`${resendEmailId}-error`}
+              className="text-xs text-rose"
+              role="alert"
+            >
               {resendError}
             </p>
           ) : null}
@@ -262,8 +369,16 @@ export function NewsletterSignup({
 
   const inputClass =
     variant === "footer"
-      ? "min-w-0 flex-1 border border-porcelain/20 bg-porcelain/10 px-4 py-3 text-sm text-porcelain placeholder:text-porcelain/40 outline-none transition-colors focus:border-porcelain/40 focus:bg-porcelain/15"
+      ? "min-w-0 flex-1 border bg-porcelain/10 px-4 py-3 text-sm text-porcelain placeholder:text-porcelain/40 outline-none transition-colors focus:bg-porcelain/15"
       : "input-soft mt-1.5";
+  const inputInvalidClass =
+    status === "error" && error
+      ? variant === "footer"
+        ? "border-rose/70 focus:border-rose"
+        : "border-rose focus:border-rose"
+      : variant === "footer"
+        ? "border-porcelain/20 focus:border-porcelain/40 focus:bg-porcelain/15"
+        : "";
 
   const buttonClass =
     variant === "footer"
@@ -273,6 +388,7 @@ export function NewsletterSignup({
   return (
     <form
       onSubmit={handleSubmit}
+      noValidate
       className={variant === "footer" ? "mt-5" : "mt-4 space-y-4"}
     >
       <div
@@ -287,14 +403,25 @@ export function NewsletterSignup({
         </label>
         <input
           id={emailId}
+          name="email"
           type="email"
-          required
           autoComplete="email"
+          inputMode="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className={inputClass}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (error) {
+              setError("");
+              setStatus("idle");
+            }
+          }}
+          className={`${inputClass} ${inputInvalidClass}`}
           placeholder="tu@email.com"
           disabled={status === "loading"}
+          aria-invalid={status === "error" && Boolean(error)}
+          aria-describedby={
+            status === "error" && error ? `${emailId}-error` : undefined
+          }
         />
         <button
           type="submit"
@@ -306,11 +433,13 @@ export function NewsletterSignup({
       </div>
       {status === "error" && error ? (
         <p
+          id={`${emailId}-error`}
           className={
             variant === "footer"
               ? "mt-2 text-xs text-rose/90"
               : "text-xs text-rose"
           }
+          role="alert"
         >
           {error}
         </p>

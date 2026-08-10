@@ -7,6 +7,8 @@ export type CartItem = {
   price: number;
   image: string | null;
   quantity: number;
+  /** Stock máximo conocido de esa talla (se revalida contra la DB). */
+  stock?: number;
 };
 
 export type CartState = {

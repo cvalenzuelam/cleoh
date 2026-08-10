@@ -188,7 +188,7 @@ function focusField(fieldId: string) {
 }
 
 export function CheckoutView({ shippingMethods }: Props) {
-  const { items, subtotal, ready, clear, count } = useCart();
+  const { items, subtotal, ready, clear, count, syncStock } = useCart();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -336,6 +336,22 @@ export function CheckoutView({ shippingMethods }: Props) {
     : 0;
   const discountAmount = appliedCoupon?.discount ?? 0;
   const estimatedTotal = Math.max(0, subtotal - discountAmount + shippingCost);
+
+  // Con envío gratis no pedimos paquetería: fijamos el primer método activo
+  // (sigue yendo en el pedido). Si baja del umbral, vuelven las opciones.
+  useEffect(() => {
+    if (!freeShipping) return;
+    const fallback = shippingMethods[0]?.id;
+    if (fallback && shippingMethodId !== fallback) {
+      setShippingMethodId(fallback);
+    }
+  }, [freeShipping, shippingMethods, shippingMethodId]);
+
+  // Recorta cantidades si el stock bajó desde que se llenó el carrito.
+  useEffect(() => {
+    if (!ready || !items.length) return;
+    void syncStock();
+  }, [ready]); // eslint-disable-line react-hooks/exhaustive-deps -- al entrar a checkout
 
   // Un solo InitiateCheckout por visita a /checkout, no por cada re-render.
   const initiateCheckoutFiredRef = useRef(false);
@@ -1118,71 +1134,75 @@ export function CheckoutView({ shippingMethods }: Props) {
             </div>
           </section>
 
-          <section className="space-y-6">
-            <h2 className="font-display text-2xl tracking-wide text-ink">
-              Envío
-              <span className="ml-1 text-lg text-rose" aria-hidden>
-                *
-              </span>
-            </h2>
+          {!freeShipping ? (
+            <section className="space-y-6">
+              <h2 className="font-display text-2xl tracking-wide text-ink">
+                Envío
+                <span className="ml-1 text-lg text-rose" aria-hidden>
+                  *
+                </span>
+              </h2>
 
-            {!shippingMethods.length ? (
-              <p className="text-sm text-ink-soft">
-                No hay métodos de envío activos. Configúralos en el admin.
-              </p>
-            ) : (
-              <FieldWrap tipId="checkout-shipping" tip={fieldTip}>
-              <div id="checkout-shipping" className="stagger-list space-y-3" tabIndex={-1}>
-                {shippingMethods.map((m) => {
-                  const active = m.id === shippingMethodId;
-                  return (
-                    <label
-                      key={m.id}
-                      className={`flex cursor-pointer items-start justify-between gap-4 border px-4 py-3 transition-all duration-300 ${
-                        active
-                          ? "select-option-active border-ink bg-white shadow-[0_8px_24px_rgba(26,20,22,0.06)]"
-                          : "border-line bg-transparent hover:-translate-y-0.5 hover:border-ink/40 hover:bg-petal/40 hover:shadow-[0_8px_20px_rgba(26,20,22,0.04)]"
-                      }`}
-                    >
-                      <span className="flex items-start gap-3">
-                        <input
-                          type="radio"
-                          name="shipping"
-                          className="mt-1"
-                          checked={active}
-                          onChange={() => {
-                            setShippingMethodId(m.id);
-                            clearFieldTip("checkout-shipping");
-                          }}
-                        />
-                        <span>
-                          <span className="block text-sm text-ink">
-                            {m.name}
+              {!shippingMethods.length ? (
+                <p className="text-sm text-ink-soft">
+                  No hay métodos de envío activos. Configúralos en el admin.
+                </p>
+              ) : (
+                <FieldWrap tipId="checkout-shipping" tip={fieldTip}>
+                  <div
+                    id="checkout-shipping"
+                    className="stagger-list space-y-3"
+                    tabIndex={-1}
+                  >
+                    {shippingMethods.map((m) => {
+                      const active = m.id === shippingMethodId;
+                      return (
+                        <label
+                          key={m.id}
+                          className={`flex cursor-pointer items-start justify-between gap-4 border px-4 py-3 transition-all duration-300 ${
+                            active
+                              ? "select-option-active border-ink bg-white shadow-[0_8px_24px_rgba(26,20,22,0.06)]"
+                              : "border-line bg-transparent hover:-translate-y-0.5 hover:border-ink/40 hover:bg-petal/40 hover:shadow-[0_8px_20px_rgba(26,20,22,0.04)]"
+                          }`}
+                        >
+                          <span className="flex items-start gap-3">
+                            <input
+                              type="radio"
+                              name="shipping"
+                              className="mt-1"
+                              checked={active}
+                              onChange={() => {
+                                setShippingMethodId(m.id);
+                                clearFieldTip("checkout-shipping");
+                              }}
+                            />
+                            <span>
+                              <span className="block text-sm text-ink">
+                                {m.name}
+                              </span>
+                              {m.etaLabel ? (
+                                <span className="mt-0.5 block text-xs text-ink-soft">
+                                  {m.etaLabel}
+                                </span>
+                              ) : null}
+                              {m.description ? (
+                                <span className="mt-0.5 block text-xs text-ink-soft">
+                                  {m.description}
+                                </span>
+                              ) : null}
+                            </span>
                           </span>
-                          {m.etaLabel ? (
-                            <span className="mt-0.5 block text-xs text-ink-soft">
-                              {m.etaLabel}
-                            </span>
-                          ) : null}
-                          {m.description ? (
-                            <span className="mt-0.5 block text-xs text-ink-soft">
-                              {m.description}
-                            </span>
-                          ) : null}
-                        </span>
-                      </span>
-                      <span className="shrink-0 text-sm tabular-nums text-ink">
-                        {freeShipping
-                          ? "Gratis"
-                          : formatCartMoney(m.priceCents / 100)}
-                      </span>
-                    </label>
-                  );
-                })}
-              </div>
-              </FieldWrap>
-            )}
-          </section>
+                          <span className="shrink-0 text-sm tabular-nums text-ink">
+                            {formatCartMoney(m.priceCents / 100)}
+                          </span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </FieldWrap>
+              )}
+            </section>
+          ) : null}
 
           <section className="space-y-3">
             <div className="flex items-center gap-2">

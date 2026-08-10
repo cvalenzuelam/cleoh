@@ -15,6 +15,7 @@ import {
   shouldShowNewsletterPopup,
 } from "@/lib/newsletter/client-storage";
 import { site } from "@/data/site";
+import { useResendCooldown } from "@/lib/newsletter/use-resend-cooldown";
 
 const OPEN_DELAY_MS = 6000;
 
@@ -50,9 +51,10 @@ export function NewsletterModal() {
   >("idle");
   const [resendError, setResendError] = useState("");
   const [resendCooldownUntil, setResendCooldownUntil] = useState(0);
+  const { coolingDown, resendLinkLabel } = useResendCooldown(resendCooldownUntil);
   const titleId = useId();
   const inputRef = useRef<HTMLInputElement>(null);
-  const RESEND_COOLDOWN_MS = 45_000;
+  const RESEND_COOLDOWN_MS = 15_000;
 
   useEffect(() => {
     queueMicrotask(() => setMounted(true));
@@ -123,23 +125,9 @@ export function NewsletterModal() {
     }
   }
 
-  useEffect(() => {
-    if (!resendCooldownUntil) return;
-    const remaining = resendCooldownUntil - Date.now();
-    if (remaining <= 0) {
-      setResendCooldownUntil(0);
-      return;
-    }
-    const timer = window.setTimeout(() => {
-      setResendCooldownUntil(0);
-      setResendStatus("idle");
-    }, remaining);
-    return () => window.clearTimeout(timer);
-  }, [resendCooldownUntil]);
-
   async function handleResend() {
     const target = email.trim().toLowerCase();
-    if (!target || Date.now() < resendCooldownUntil) return;
+    if (!target || coolingDown) return;
 
     setResendError("");
     setResendStatus("loading");
@@ -243,30 +231,24 @@ export function NewsletterModal() {
                       </p>
                     )}
                     {email ? (
-                      <div className="mt-3">
+                      <div className="mt-3 space-y-2">
                         {resendStatus === "sent" ? (
                           <p className="text-xs text-ink-soft" role="status">
                             Listo — revisa tu bandeja (y spam).
                           </p>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={handleResend}
-                            disabled={
-                              resendStatus === "loading" ||
-                              Date.now() < resendCooldownUntil
-                            }
-                            className="text-xs text-ink-soft underline-offset-2 transition-colors hover:text-ink hover:underline disabled:opacity-50"
-                          >
-                            {resendStatus === "loading"
-                              ? "Reenviando…"
-                              : Date.now() < resendCooldownUntil
-                                ? "Espera un momento para reenviar"
-                                : "¿No te llegó? Reenviar correo"}
-                          </button>
-                        )}
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={handleResend}
+                          disabled={resendStatus === "loading" || coolingDown}
+                          className="pressable text-xs font-semibold text-ink underline-offset-4 transition-all duration-200 hover:text-rose hover:underline active:opacity-80 disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {resendStatus === "loading"
+                            ? "Reenviando…"
+                            : resendLinkLabel}
+                        </button>
                         {resendStatus === "error" && resendError ? (
-                          <p className="mt-2 text-xs text-rose" role="alert">
+                          <p className="text-xs text-rose" role="alert">
                             {resendError}
                           </p>
                         ) : null}

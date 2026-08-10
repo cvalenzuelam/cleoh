@@ -99,7 +99,7 @@ export const enviosSections: PolicySection[] = [
   {
     title: "Envíos",
     paragraphs: [
-      "Enviamos a todo México. En el checkout eliges el método y ves el costo y el tiempo estimado antes de pagar. En compras con subtotal desde $1,000 MXN el envío va por nuestra cuenta (sigues eligiendo Estafeta o DHL).",
+      "Enviamos a todo México. En compras con subtotal desde $1,000 MXN el envío va por nuestra cuenta y no hace falta elegir paquetería. Si el pedido no alcanza ese monto, en el checkout eliges el método y ves el costo y el tiempo estimado antes de pagar.",
     ],
     bullets: [
       "Estafeta Terrestre — envío estándar (aprox. 3–5 días hábiles)",
