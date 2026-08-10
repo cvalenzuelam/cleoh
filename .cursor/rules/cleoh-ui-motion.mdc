@@ -1,0 +1,39 @@
+---
+description: Cleoh storefront — todo elemento nuevo o tocado debe tener animación/transición según contexto
+globs: Cleoh/src/**/*.{tsx,css}
+alwaysApply: false
+---
+
+# Cleoh: motion y transiciones obligatorias
+
+En la **tienda pública** (`Cleoh/src`, no admin), todo elemento nuevo y todo bloque que se modifique debe incluir motion coherente con el sistema existente en `globals.css`. No dejar UI estática salvo texto corrido o datos tabulares.
+
+## Por contexto de página
+
+| Contexto | Qué usar |
+|----------|----------|
+| Sección / título / hero | `animate-fade-up`, `-delay`, `-delay-2` en cascada |
+| Grid de productos o tiles | `stagger-grid` en el contenedor |
+| Listas (FAQ, checkout, carrito, resultados) | `stagger-list` |
+| Modal / drawer / buscador | `overlay-fade-in` en backdrop + `search-panel` / `cart-drawer-panel` / `mobile-nav-panel` en panel |
+| Producto recién agregado | `cart-added-feature` |
+| Carga / skeleton | `content-shimmer` o `search-loading` |
+| Cards de producto | `product-card-link` (ya en `ProductCard`) |
+| CTAs y chips | `btn`, `pressable`, `chip`, `link-anim` |
+| Nav y utilidades header | `nav-link`, `header-util` |
+| Inputs de formulario | `input-soft` o `search-input` |
+| Cambio de ruta tienda | `PageTransition` (`page-enter`) — no duplicar en cada página |
+
+## Al implementar
+
+1. Revisar `globals.css` antes de inventar clases nuevas; extender el sistema si falta un patrón reutilizable.
+2. Estados interactivos: `transition-colors`, `transition-transform` o clases del interaction system (hover, active, focus-visible).
+3. Contenido que aparece tras acción (error, cupón, envío gratis): `animate-fade-up` o `key` en el nodo para re-disparar.
+4. **Admin** (`src/app/admin`, `src/components/admin`): motion mínimo; no aplicar `stagger-*` ni animaciones de entrada pesadas.
+5. Respetar `prefers-reduced-motion` — cualquier animación nueva en CSS debe listarse en el bloque `@media (prefers-reduced-motion: reduce)` de `globals.css`.
+
+## Prohibido
+
+- Bloques nuevos sin ninguna transición o animación de entrada cuando el resto de la página ya las usa.
+- `framer-motion` u otra librería si el CSS existente cubre el caso.
+- Animaciones que bloqueen interacción (`pointer-events` en overlays solo en backdrop, no en contenido).
