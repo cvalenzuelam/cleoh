@@ -35,8 +35,8 @@ function FacebookIcon({ className }: { className?: string }) {
   return (
     <svg
       className={className}
-      width="28"
-      height="28"
+      width="34"
+      height="34"
       viewBox="0 0 24 24"
       fill="currentColor"
       aria-hidden
