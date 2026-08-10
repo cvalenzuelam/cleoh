@@ -37,14 +37,19 @@ export function InfoPage({ eyebrow, title, description, children }: Props) {
 }
 
 export function InfoSection({
+  id,
   title,
   children,
 }: {
+  id?: string;
   title: string;
   children: ReactNode;
 }) {
   return (
-    <section className="border-t border-line py-8 first:border-t-0 first:pt-0">
+    <section
+      id={id}
+      className="scroll-mt-28 border-t border-line py-8 first:border-t-0 first:pt-0"
+    >
       <h2 className="font-display text-2xl tracking-wide text-ink">{title}</h2>
       <div className="mt-4 space-y-3 text-sm leading-relaxed text-ink-soft">
         {children}

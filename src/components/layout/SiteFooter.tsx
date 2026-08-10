@@ -116,17 +116,42 @@ export function SiteFooter({ navLinks = [] }: { navLinks?: NavLink[] }) {
 
       <div className="border-t border-porcelain/10">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
-            <p className="text-xs text-porcelain/45">
-              © {new Date().getFullYear()} Cleoh Lencería
-            </p>
-            <PaymentMethodBadges tone="light" />
-            <Link
-              href="/politicas"
-              className="shrink-0 text-xs text-porcelain/45 transition-colors hover:text-porcelain/70"
+          <div className="flex flex-col items-center gap-4">
+            <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
+              <p className="text-xs text-porcelain/45">
+                © {new Date().getFullYear()} Cleoh Lencería
+              </p>
+              <PaymentMethodBadges tone="light" />
+            </div>
+            <nav
+              aria-label="Legal"
+              className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-porcelain/45"
             >
-              Aviso de privacidad
-            </Link>
+              <Link
+                href="/politicas#privacidad"
+                className="transition-colors hover:text-porcelain/70"
+              >
+                Privacidad
+              </Link>
+              <span aria-hidden className="text-porcelain/25">
+                |
+              </span>
+              <Link
+                href="/politicas#terminos"
+                className="transition-colors hover:text-porcelain/70"
+              >
+                Términos
+              </Link>
+              <span aria-hidden className="text-porcelain/25">
+                |
+              </span>
+              <Link
+                href="/politicas#derechos-arco"
+                className="transition-colors hover:text-porcelain/70"
+              >
+                Derechos ARCO
+              </Link>
+            </nav>
           </div>
         </div>
       </div>

@@ -70,11 +70,35 @@ export const politicasSections: PolicySection[] = [
     ],
   },
   {
-    title: "Privacidad y datos",
+    id: "privacidad",
+    title: "Aviso de privacidad",
     paragraphs: [
-      "Usamos tus datos solo para procesar pedidos, enviar confirmaciones y, si lo autorizas, novedades de la tienda. No vendemos tu información a terceros.",
-      "En el checkout pedimos nombre, correo, teléfono y dirección de envío. El pago lo procesan Mercado Pago o PayPal de forma cifrada; las transferencias bancarias se validan manualmente al recibir tu comprobante. Nosotros no guardamos los datos completos de tu tarjeta.",
-      "Puedes pedirnos la actualización o eliminación de tus datos de contacto escribiéndonos por redes, salvo la información que debamos conservar por obligaciones fiscales o de pedidos.",
+      "Cleoh Lencería, con domicilio en México y responsable del tratamiento Bricia J Elizalde, recaba y trata datos personales conforme a la Ley Federal de Protección de Datos Personales en Posesión de los Particulares (LFPDPPP).",
+      "Datos que podemos recabar: nombre, correo electrónico, teléfono, dirección de envío, historial de pedidos y, si te suscribes al newsletter, tu correo para enviarte novedades y promociones.",
+      "Finalidades: procesar y entregar pedidos, confirmar pagos, dar seguimiento a envíos, atender consultas, cumplir obligaciones fiscales y legales, y —solo si te suscribes— enviarte comunicaciones comerciales de Cleoh.",
+      "El pago lo procesan Mercado Pago o PayPal de forma cifrada; las transferencias bancarias se validan manualmente al recibir tu comprobante. Nosotros no guardamos los datos completos de tu tarjeta. Compartimos datos únicamente con proveedores necesarios para operar (paquetería, procesadores de pago y servicios de correo). No vendemos tu información a terceros.",
+      "Usamos cookies y tecnologías similares para el funcionamiento del sitio y medición básica de visitas (por ejemplo, Meta Pixel). Puedes limitar cookies desde la configuración de tu navegador.",
+      "Conservamos tus datos mientras exista una relación comercial o el tiempo que exija la ley (facturación, garantías, reclamaciones).",
+    ],
+  },
+  {
+    id: "derechos-arco",
+    title: "Derechos ARCO",
+    paragraphs: [
+      "Tienes derecho a Acceder, Rectificar, Cancelar u Oponerte al tratamiento de tus datos personales (derechos ARCO), así como a revocar el consentimiento para el newsletter.",
+      "Para ejercerlos, escríbenos por Instagram (@cleoh_lenceria) indicando tu nombre, correo asociado al pedido o suscripción, el derecho que deseas ejercer y una descripción clara de tu solicitud. Responderemos en un plazo razonable conforme a la ley.",
+      "Si consideras que tu solicitud no fue atendida correctamente, puedes acudir al Instituto Nacional de Transparencia, Acceso a la Información y Protección de Datos Personales (INAI).",
+    ],
+  },
+  {
+    id: "terminos",
+    title: "Términos y condiciones",
+    paragraphs: [
+      "Al usar lenceriacleoh.com y realizar una compra aceptas estos términos. Si no estás de acuerdo, te pedimos no utilizar el sitio.",
+      "Los precios se muestran en pesos mexicanos (MXN). Un pedido se confirma cuando recibimos el pago o validamos tu transferencia bancaria. Nos reservamos el derecho de cancelar pedidos por errores de precio, stock o sospecha de fraude, con reembolso del monto pagado si aplica.",
+      "Las descripciones, fotos y disponibilidad de productos son orientativas; el stock se actualiza en tiempo real. Por la naturaleza íntima de la lencería, no manejamos devoluciones ni cambios por preferencia de talla o gusto. Consulta envíos y excepciones por producto dañado o incorrecto en la página de envíos.",
+      "El contenido del sitio (textos, imágenes, marca Cleoh) es propiedad de Cleoh Lencería y no puede reproducirse sin autorización.",
+      "Estos términos se rigen por las leyes de México. Podemos actualizarlos publicando la versión vigente en esta página.",
     ],
   },
   {

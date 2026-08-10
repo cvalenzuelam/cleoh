@@ -7,7 +7,7 @@ import { politicasSections } from "@/data/legal";
 export const metadata: Metadata = {
   title: "Políticas de la tienda",
   description:
-    "Atención al cliente, privacidad, pagos y condiciones generales de Cleoh Lencería.",
+    "Aviso de privacidad, derechos ARCO, términos, pagos y condiciones generales de Cleoh Lencería.",
 };
 
 export default function PoliticasPage() {
@@ -19,7 +19,11 @@ export default function PoliticasPage() {
     >
       <div className="stagger-list">
         {politicasSections.map((section) => (
-          <InfoSection key={section.title} title={section.title}>
+          <InfoSection
+            key={section.id ?? section.title}
+            id={section.id}
+            title={section.title}
+          >
             {section.paragraphs.map((p, i) => (
               <p key={i}>
                 <InstagramRichText
