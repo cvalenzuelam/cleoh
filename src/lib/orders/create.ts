@@ -3,6 +3,7 @@ import "server-only";
 import { sendMetaPurchaseCapiEvent } from "@/lib/analytics/metaConversionsApi";
 import { markAbandonedCartRecovered } from "@/lib/cart/abandon";
 import { sendOrderPaidEmail } from "@/lib/email/orders";
+import { resolveShippingCents } from "@/lib/shipping/free-shipping";
 import { getShippingMethodById } from "@/lib/shipping/methods";
 import type { ShippingAddress } from "@/lib/shipping/types";
 import { createServiceClient } from "@/lib/supabase/server";
@@ -189,7 +190,11 @@ export async function createPendingOrder(input: {
   }
 
   const discountCents = couponResult.discountCents ?? 0;
-  const shippingCents = shippingMethod.priceCents;
+  // Misma regla que el checkout: envío gratis por subtotal de productos (sin cupón).
+  const shippingCents = resolveShippingCents(
+    subtotalCents / 100,
+    shippingMethod.priceCents,
+  );
   const totalCents = Math.max(0, subtotalCents - discountCents + shippingCents);
   const orderNumber = generateOrderNumber();
 

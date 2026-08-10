@@ -23,6 +23,10 @@ import {
   scheduleAbandonedCartSync,
 } from "@/lib/cart/abandon-client";
 import { formatCartMoney } from "@/lib/cart/types";
+import {
+  qualifiesForFreeShipping,
+  resolveShippingCents,
+} from "@/lib/shipping/free-shipping";
 import type { ShippingMethodPublic } from "@/lib/shipping/types";
 
 type Props = {
@@ -326,8 +330,9 @@ export function CheckoutView({ shippingMethods }: Props) {
     [shippingMethods, shippingMethodId],
   );
 
-  const shippingCost = selectedShipping?.priceCents
-    ? selectedShipping.priceCents / 100
+  const freeShipping = qualifiesForFreeShipping(subtotal);
+  const shippingCost = selectedShipping
+    ? resolveShippingCents(subtotal, selectedShipping.priceCents) / 100
     : 0;
   const discountAmount = appliedCoupon?.discount ?? 0;
   const estimatedTotal = Math.max(0, subtotal - discountAmount + shippingCost);
@@ -1167,7 +1172,9 @@ export function CheckoutView({ shippingMethods }: Props) {
                         </span>
                       </span>
                       <span className="shrink-0 text-sm tabular-nums text-ink">
-                        {formatCartMoney(m.priceCents / 100)}
+                        {freeShipping
+                          ? "Gratis"
+                          : formatCartMoney(m.priceCents / 100)}
                       </span>
                     </label>
                   );
@@ -1275,12 +1282,20 @@ export function CheckoutView({ shippingMethods }: Props) {
               <div className="flex justify-between">
                 <span>Envío</span>
                 <span
-                  key={selectedShipping?.id ?? "none"}
-                  className="tabular-nums animate-fade-up"
+                  key={
+                    selectedShipping
+                      ? `${selectedShipping.id}-${shippingCost}`
+                      : "none"
+                  }
+                  className={`tabular-nums animate-fade-up${
+                    freeShipping && selectedShipping ? " text-rose" : ""
+                  }`}
                 >
-                  {selectedShipping
-                    ? formatCartMoney(shippingCost)
-                    : "—"}
+                  {!selectedShipping
+                    ? "—"
+                    : freeShipping
+                      ? "Gratis"
+                      : formatCartMoney(shippingCost)}
                 </span>
               </div>
               <div className="flex justify-between pt-2 font-medium">

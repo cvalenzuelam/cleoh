@@ -2,7 +2,7 @@ export const NEWSLETTER_STORAGE_KEY = "cleoh-newsletter";
 const DISMISS_DAYS = 7;
 
 export type NewsletterStorageState =
-  | { subscribed: true }
+  | { subscribed: true; email?: string }
   | { dismissedUntil: number };
 
 export function readNewsletterStorage(): NewsletterStorageState | null {
@@ -21,10 +21,21 @@ export function isNewsletterSubscribed() {
   return Boolean(stored && "subscribed" in stored && stored.subscribed);
 }
 
-export function markNewsletterSubscribed() {
+export function getNewsletterEmail() {
+  const stored = readNewsletterStorage();
+  if (!stored || !("subscribed" in stored) || !stored.subscribed) return "";
+  return typeof stored.email === "string" ? stored.email : "";
+}
+
+export function markNewsletterSubscribed(email?: string) {
+  const normalized = email?.trim().toLowerCase() || undefined;
+  const previous = getNewsletterEmail();
   localStorage.setItem(
     NEWSLETTER_STORAGE_KEY,
-    JSON.stringify({ subscribed: true }),
+    JSON.stringify({
+      subscribed: true,
+      ...(normalized || previous ? { email: normalized || previous } : {}),
+    }),
   );
 }
 

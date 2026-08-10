@@ -18,7 +18,7 @@ export const site = {
     heroTeaser:
       "Suscríbete con tu email y recibe 10% de descuento en tu primera compra.",
   },
-  /** Umbral de subtotal (MXN) para mensaje de envío gratis en carrito/checkout. */
+  /** Umbral de subtotal (MXN) para envío gratis real en carrito/checkout. */
   freeShippingThresholdMxn: 1000,
   /** Mensajes del banner superior (rotan en la tienda). El cupón CLEOH10
    *  vive en el widget de newsletter — no duplicar aquí. */

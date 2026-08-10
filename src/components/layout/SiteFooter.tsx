@@ -114,11 +114,11 @@ export function SiteFooter({ navLinks = [] }: { navLinks?: NavLink[] }) {
       </div>
 
       <div className="border-t border-porcelain/10">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-4 py-5 text-xs text-porcelain/45 sm:flex-row sm:items-center sm:justify-between sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-5 text-xs text-porcelain/45 sm:px-6 lg:px-8">
           <p>© {new Date().getFullYear()} Cleoh Lencería</p>
           <Link
             href="/politicas"
-            className="transition-colors hover:text-porcelain/70"
+            className="shrink-0 transition-colors hover:text-porcelain/70"
           >
             Aviso de privacidad
           </Link>
