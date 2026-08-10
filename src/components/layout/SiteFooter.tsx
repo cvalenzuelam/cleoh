@@ -116,16 +116,14 @@ export function SiteFooter({ navLinks = [] }: { navLinks?: NavLink[] }) {
 
       <div className="border-t border-porcelain/10">
         <div className="mx-auto max-w-7xl px-4 py-5 sm:px-6 lg:px-8">
-          <div className="flex flex-col items-center gap-4">
-            <div className="flex w-full flex-col items-center gap-4 sm:flex-row sm:justify-between sm:gap-6">
-              <p className="text-xs text-porcelain/45">
-                © {new Date().getFullYear()} Cleoh Lencería
-              </p>
-              <PaymentMethodBadges tone="light" />
-            </div>
+          <div className="grid w-full grid-cols-1 items-center gap-4 sm:grid-cols-3 sm:gap-6">
+            <p className="text-center text-xs text-porcelain/45 sm:text-left">
+              © {new Date().getFullYear()} Cleoh Lencería
+            </p>
+            <PaymentMethodBadges tone="light" className="justify-self-center" />
             <nav
               aria-label="Legal"
-              className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-porcelain/45"
+              className="flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-xs text-porcelain/45 sm:justify-end sm:justify-self-end"
             >
               <Link
                 href="/politicas#privacidad"
