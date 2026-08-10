@@ -902,7 +902,7 @@ export async function sendNewOrderAdminNotifyEmail(orderId: string) {
   }
 
   if (!notify) {
-    console.warn("[email] Sin ORDER_NOTIFY_EMAIL — se omite aviso de pedido nuevo.");
+    console.warn("[email] Sin inbox de tienda configurado — se omite aviso de pedido nuevo.");
     return { sent: false as const, reason: "missing_notify" as const };
   }
 

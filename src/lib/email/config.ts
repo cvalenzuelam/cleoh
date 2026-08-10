@@ -13,6 +13,7 @@ export function getEmailConfig() {
   };
 }
 
+/** Inbox de la tienda para avisos de pedidos (siempre Bricia, no usa env). */
 export function getOrderNotifyEmail() {
-  return cleanEnv(process.env.ORDER_NOTIFY_EMAIL) || site.orderNotifyEmail;
+  return site.orderNotifyEmail;
 }

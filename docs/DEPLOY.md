@@ -32,7 +32,7 @@ Project → **Settings → Environment Variables** (Production + Preview si quie
 | `RESEND_API_KEY` | |
 | `EMAIL_FROM` | Ej. `Cleoh <pedidos@pedidos.lenceriacleoh.com>` (dominio verificado en Resend) |
 | `CRON_SECRET` | Auto en Vercel para `/api/cron/abandoned-cart` (carrito abandonado) |
-| `ORDER_NOTIFY_EMAIL` | Inbox de la tienda (`briciaelizaldes@gmail.com`) — aviso en cada pedido nuevo; BCC en pedidos pagados |
+| Inbox pedidos | `briciaelizaldes@gmail.com` en `src/data/site.ts` → `orderNotifyEmail` (avisos nuevos + BCC al pagar) |
 | `VERCEL_TOKEN` | Token **personal** (`vcp_…`) para tráfico en `/admin/analiticas`. [Crear aquí](https://vercel.com/account/tokens). No uses tokens `vca_` de Sign in with Vercel. |
 | `VERCEL_PROJECT_ID` | `prj_3jV3lCl9BBojqiFMCp72i9kdpBMJ` (proyecto cleoh) |
 | `VERCEL_TEAM_ID` | `team_Fe3Ld4xrAgFma4ZNRHycwgUM` |
