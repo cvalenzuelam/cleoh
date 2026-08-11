@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { Cormorant_Garamond, Outfit } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsightsClient } from "@/components/SpeedInsightsClient";
-import { MetaPixel } from "@/components/MetaPixel";
 import { rootMetadata } from "@/lib/seo/metadata";
 import "./globals.css";
 
@@ -32,7 +31,6 @@ export default function RootLayout({
         {children}
         <Analytics />
         <SpeedInsightsClient />
-        <MetaPixel />
       </body>
     </html>
   );

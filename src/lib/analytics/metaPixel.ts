@@ -8,6 +8,12 @@
 import { sendMetaCapiFromClient } from "@/lib/analytics/metaCapiClient";
 import { createMetaEventId } from "@/lib/analytics/metaEventId";
 
+declare global {
+  interface Window {
+    fbq?: (...args: unknown[]) => void;
+  }
+}
+
 function whenPixelReady(callback: () => void, attemptsLeft = 20) {
   if (typeof window === "undefined") return;
   if (window.fbq) {
