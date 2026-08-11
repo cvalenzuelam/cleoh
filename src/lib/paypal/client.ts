@@ -123,7 +123,11 @@ export async function capturePayPalOrder(paypalOrderId: string) {
     status?: string;
     purchase_units?: {
       payments?: {
-        captures?: { id?: string; status?: string }[];
+        captures?: {
+          id?: string;
+          status?: string;
+          amount?: { value?: string; currency_code?: string };
+        }[];
       };
       invoice_id?: string;
       reference_id?: string;
@@ -143,6 +147,10 @@ export async function capturePayPalOrder(paypalOrderId: string) {
   const unit = data.purchase_units?.[0];
   const capture = unit?.payments?.captures?.[0];
   const orderNumber = unit?.invoice_id || unit?.reference_id;
+  const amountCents =
+    capture?.amount?.value != null
+      ? Math.round(parseFloat(capture.amount.value) * 100)
+      : undefined;
 
   return {
     paypalOrderId: data.id ?? paypalOrderId,
@@ -150,6 +158,7 @@ export async function capturePayPalOrder(paypalOrderId: string) {
     captureId: capture?.id,
     captureStatus: capture?.status,
     orderNumber,
+    amountCents,
   };
 }
 

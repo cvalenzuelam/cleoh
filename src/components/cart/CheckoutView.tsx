@@ -847,10 +847,11 @@ export function CheckoutView({ shippingMethods }: Props) {
   const onPayPalApprove = useCallback(
     async (orderID: string) => {
       setStatus("Confirmando pago PayPal…");
+      const f = formRef.current;
       const res = await fetch("/api/checkout/paypal/capture", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ orderID }),
+        body: JSON.stringify({ orderID, ...buildPayload(f) }),
       });
       const data = (await res.json()) as {
         message?: string;
@@ -868,7 +869,7 @@ export function CheckoutView({ shippingMethods }: Props) {
         : "";
       router.push(`/checkout/exito${q}`);
     },
-    [clear, router],
+    [buildPayload, clear, router],
   );
 
   const createBankTransferOrder = useCallback(async () => {

@@ -28,6 +28,7 @@ type Props = {
   totalCents: number;
   refundedCents: number;
   paymentLabel: string;
+  manualOnly?: boolean;
   items: RefundItem[];
 };
 
@@ -45,6 +46,7 @@ export function OrderRefundPanel({
   totalCents,
   refundedCents,
   paymentLabel,
+  manualOnly = false,
   items,
 }: Props) {
   const [pending, start] = useTransition();
@@ -305,14 +307,17 @@ export function OrderRefundPanel({
         >
           {pending
             ? "Procesando…"
-            : `Reembolsar ${formatOrderMoney(refundCents)}`}
+            : manualOnly
+              ? `Registrar reembolso ${formatOrderMoney(refundCents)}`
+              : `Reembolsar ${formatOrderMoney(refundCents)}`}
         </button>
       </div>
 
       {error ? <p className="text-sm text-red-600">{error}</p> : null}
       <p className="text-xs text-zinc-400">
-        Puedes reembolsar una parte o todo el pedido. El cliente recibe un correo
-        con el detalle.
+        {manualOnly
+          ? "Transfiere el monto al cliente desde tu banco y luego registra el reembolso aquí para actualizar el pedido, el stock y avisar por correo."
+          : "Puedes reembolsar una parte o todo el pedido. El cliente recibe un correo con el detalle."}
       </p>
     </div>
   );

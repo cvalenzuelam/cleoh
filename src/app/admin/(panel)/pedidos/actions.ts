@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { requireAdmin } from "@/lib/admin/auth";
 import {
   sendOrderRefundEmail,
@@ -9,7 +10,7 @@ import {
 import { refundMercadoPagoPayment } from "@/lib/mercadopago/client";
 import { refundPayPalCapture } from "@/lib/paypal/client";
 import { markOrderPaid } from "@/lib/orders/create";
-import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
+import { PAYMENT_METHODS, resolvePaymentMethod } from "@/lib/orders/payment-method";
 import {
   calculateRefundAmountCents,
   type RefundLineInput,
@@ -268,24 +269,32 @@ async function restockRefundedItems(
 
 async function processPaymentRefund(
   order: {
+    payment_method?: string | null;
     mp_payment_id: string | null;
     paypal_order_id: string | null;
     currency: string | null;
   },
   amountCents: number,
 ) {
+  const method = resolvePaymentMethod(order);
+
+  if (method === PAYMENT_METHODS.spei) {
+    return;
+  }
+
   if (!order.mp_payment_id) {
     throw new Error("No hay referencia de pago para procesar el reembolso.");
   }
 
-  if (order.paypal_order_id) {
+  if (method === PAYMENT_METHODS.paypal) {
     await refundPayPalCapture(order.mp_payment_id, {
       amountCents,
       currency: order.currency ?? "MXN",
     });
-  } else {
-    await refundMercadoPagoPayment(order.mp_payment_id, { amountCents });
+    return;
   }
+
+  await refundMercadoPagoPayment(order.mp_payment_id, { amountCents });
 }
 
 export async function processOrderRefund(
@@ -304,7 +313,7 @@ export async function processOrderRefund(
     const { data: order, error: fetchError } = await supabase
       .from("orders")
       .select(
-        "id, status, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, currency, mp_payment_id, paypal_order_id, coupon_id",
+        "id, status, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, currency, payment_method, mp_payment_id, paypal_order_id, coupon_id",
       )
       .eq("id", orderId)
       .maybeSingle();
@@ -478,6 +487,123 @@ export async function processOrderRefund(
     return {
       error:
         e instanceof Error ? e.message : "No se pudo procesar el reembolso.",
+    };
+  }
+}
+
+/**
+ * Borra uno o varios pedidos de la base de datos (cascade a order_items).
+ * Si el pedido descontó stock (paid/fulfilled), restaura lo que aún no
+ * se había reembolsado con restock. No llama a PayPal/MP — solo limpia datos.
+ */
+async function deleteOrdersByIds(
+  orderIds: string[],
+): Promise<OrderActionState & { deleted?: number }> {
+  const uniqueIds = [...new Set(orderIds.map((id) => id.trim()).filter(Boolean))];
+  if (!uniqueIds.length) {
+    return { error: "No hay pedidos seleccionados." };
+  }
+
+  await requireAdmin();
+  const supabase = createServiceClient();
+
+  const { data: orders, error: fetchError } = await supabase
+    .from("orders")
+    .select("id, status, coupon_id")
+    .in("id", uniqueIds);
+
+  if (fetchError) {
+    return { error: fetchError.message };
+  }
+
+  if (!orders?.length) {
+    return { error: "No se encontraron los pedidos seleccionados." };
+  }
+
+  for (const order of orders) {
+    const { data: items } = await supabase
+      .from("order_items")
+      .select("variant_id, quantity, refunded_quantity")
+      .eq("order_id", order.id);
+
+    const stockWasDeducted =
+      order.status === "paid" || order.status === "fulfilled";
+
+    if (stockWasDeducted && items?.length) {
+      await restockRefundedItems(
+        supabase,
+        items.map((item) => ({
+          variant_id: item.variant_id,
+          quantity: Math.max(
+            0,
+            item.quantity - (item.refunded_quantity ?? 0),
+          ),
+        })),
+      );
+    }
+
+    if (stockWasDeducted && order.coupon_id) {
+      const { data: coupon } = await supabase
+        .from("coupons")
+        .select("used_count")
+        .eq("id", order.coupon_id)
+        .maybeSingle();
+      if (coupon && (coupon.used_count ?? 0) > 0) {
+        await supabase
+          .from("coupons")
+          .update({ used_count: (coupon.used_count ?? 0) - 1 })
+          .eq("id", order.coupon_id);
+      }
+    }
+  }
+
+  const idsToDelete = orders.map((o) => o.id);
+  const { error: deleteError } = await supabase
+    .from("orders")
+    .delete()
+    .in("id", idsToDelete);
+
+  if (deleteError) {
+    return { error: deleteError.message };
+  }
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/pedidos");
+  return { ok: true, deleted: idsToDelete.length };
+}
+
+export async function deleteOrder(
+  orderId: string,
+): Promise<OrderActionState> {
+  try {
+    const result = await deleteOrdersByIds([orderId]);
+    if (result.error) return { error: result.error };
+    redirect("/admin/pedidos");
+  } catch (e) {
+    if (
+      e &&
+      typeof e === "object" &&
+      "digest" in e &&
+      typeof (e as { digest?: string }).digest === "string" &&
+      (e as { digest: string }).digest.startsWith("NEXT_REDIRECT")
+    ) {
+      throw e;
+    }
+    return {
+      error: e instanceof Error ? e.message : "No se pudo borrar el pedido.",
+    };
+  }
+}
+
+export async function deleteOrders(
+  orderIds: string[],
+): Promise<OrderActionState & { deleted?: number }> {
+  try {
+    return await deleteOrdersByIds(orderIds);
+  } catch (e) {
+    return {
+      error:
+        e instanceof Error ? e.message : "No se pudieron borrar los pedidos.",
     };
   }
 }

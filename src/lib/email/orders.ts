@@ -548,7 +548,6 @@ function buildNewOrderAdminHtml(input: {
 
 export async function sendOrderPaidEmail(orderId: string) {
   const { apiKey, from, configured } = getEmailConfig();
-  const notify = getOrderNotifyEmail();
 
   if (!configured) {
     console.warn(
@@ -600,7 +599,6 @@ export async function sendOrderPaidEmail(orderId: string) {
     const { error: sendError } = await resend.emails.send({
       from,
       to: [order.email],
-      ...(notify ? { bcc: [notify] } : {}),
       subject,
       html,
     });
@@ -619,7 +617,6 @@ export async function sendOrderPaidEmail(orderId: string) {
 
 export async function sendOrderShippedEmail(orderId: string) {
   const { apiKey, from, configured } = getEmailConfig();
-  const notify = getOrderNotifyEmail();
 
   if (!configured) {
     console.warn(
@@ -667,7 +664,6 @@ export async function sendOrderShippedEmail(orderId: string) {
     const { error: sendError } = await resend.emails.send({
       from,
       to: [order.email],
-      ...(notify ? { bcc: [notify] } : {}),
       subject,
       html,
     });
@@ -697,7 +693,6 @@ export async function sendOrderRefundEmail(
   },
 ) {
   const { apiKey, from, configured } = getEmailConfig();
-  const notify = getOrderNotifyEmail();
 
   if (!configured) {
     console.warn(
@@ -739,7 +734,6 @@ export async function sendOrderRefundEmail(
     const { error: sendError } = await resend.emails.send({
       from,
       to: [order.email],
-      ...(notify ? { bcc: [notify] } : {}),
       subject,
       html,
     });
@@ -758,7 +752,6 @@ export async function sendOrderRefundEmail(
 
 export async function sendOrderCancelledEmail(orderId: string) {
   const { apiKey, from, configured } = getEmailConfig();
-  const notify = getOrderNotifyEmail();
 
   if (!configured) {
     console.warn(
@@ -800,7 +793,6 @@ export async function sendOrderCancelledEmail(orderId: string) {
     const { error: sendError } = await resend.emails.send({
       from,
       to: [order.email],
-      ...(notify ? { bcc: [notify] } : {}),
       subject,
       html,
     });

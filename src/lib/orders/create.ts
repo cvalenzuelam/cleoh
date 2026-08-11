@@ -117,6 +117,38 @@ export async function resolveCoupon(
   };
 }
 
+export type CheckoutOrderLine = {
+  productId: string;
+  variantId: string | null;
+  name: string;
+  size: string;
+  quantity: number;
+  unitPriceCents: number;
+  lineTotalCents: number;
+};
+
+export type PreparedCheckout = {
+  lines: CheckoutOrderLine[];
+  subtotalCents: number;
+  discountCents: number;
+  shippingCents: number;
+  totalCents: number;
+  couponId: string | null;
+  couponCode: string | null;
+  shippingAddress: {
+    street: string;
+    exterior: string;
+    interior: string;
+    neighborhood: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+    methodId: string;
+    methodName: string;
+  };
+};
+
 export type PendingOrderResult =
   | { error: string }
   | {
@@ -129,15 +161,7 @@ export type PendingOrderResult =
         shipping_cents: number;
         coupon_code: string | null;
       };
-      lines: {
-        productId: string;
-        variantId: string | null;
-        name: string;
-        size: string;
-        quantity: number;
-        unitPriceCents: number;
-        lineTotalCents: number;
-      }[];
+      lines: CheckoutOrderLine[];
       discountCents: number;
     };
 
@@ -152,17 +176,13 @@ function validateAddress(address: ShippingAddress | undefined) {
   return null;
 }
 
-export async function createPendingOrder(input: {
+export async function prepareCheckoutOrder(input: {
   email: string;
-  name: string;
-  phone?: string;
   items: CheckoutLine[];
   couponCode?: string;
   shippingMethodId?: string;
   shippingAddress?: ShippingAddress;
-  notes?: string;
-  paymentMethod?: PaymentMethod;
-}): Promise<PendingOrderResult> {
+}): Promise<{ error: string } | PreparedCheckout> {
   const supabase = createServiceClient();
 
   if (!input.items.length) {
@@ -181,16 +201,7 @@ export async function createPendingOrder(input: {
     return { error: "Método de envío no disponible." as const };
   }
 
-  // Revalidar precios/stock desde DB
-  const lines: {
-    productId: string;
-    variantId: string | null;
-    name: string;
-    size: string;
-    quantity: number;
-    unitPriceCents: number;
-    lineTotalCents: number;
-  }[] = [];
+  const lines: CheckoutOrderLine[] = [];
 
   for (const item of input.items) {
     const { data: product } = await supabase
@@ -242,13 +253,11 @@ export async function createPendingOrder(input: {
   }
 
   const discountCents = couponResult.discountCents ?? 0;
-  // Misma regla que el checkout: envío gratis por subtotal de productos (sin cupón).
   const shippingCents = resolveShippingCents(
     subtotalCents / 100,
     shippingMethod.priceCents,
   );
   const totalCents = Math.max(0, subtotalCents - discountCents + shippingCents);
-  const orderNumber = generateOrderNumber();
 
   const address = input.shippingAddress!;
   const shippingAddress = {
@@ -264,6 +273,59 @@ export async function createPendingOrder(input: {
     methodName: shippingMethod.name,
   };
 
+  return {
+    lines,
+    subtotalCents,
+    discountCents,
+    shippingCents,
+    totalCents,
+    couponId: couponResult.couponId,
+    couponCode: couponResult.couponCode,
+    shippingAddress,
+  };
+}
+
+export async function createPendingOrder(input: {
+  email: string;
+  name: string;
+  phone?: string;
+  items: CheckoutLine[];
+  couponCode?: string;
+  shippingMethodId?: string;
+  shippingAddress?: ShippingAddress;
+  notes?: string;
+  paymentMethod?: PaymentMethod;
+  orderNumber?: string;
+  paypalOrderId?: string;
+  notifyAdmin?: boolean;
+}): Promise<PendingOrderResult> {
+  const supabase = createServiceClient();
+
+  const prepared = await prepareCheckoutOrder({
+    email: input.email,
+    items: input.items,
+    couponCode: input.couponCode,
+    shippingMethodId: input.shippingMethodId,
+    shippingAddress: input.shippingAddress,
+  });
+
+  if ("error" in prepared) {
+    return { error: prepared.error };
+  }
+
+  const {
+    lines,
+    subtotalCents,
+    discountCents,
+    shippingCents,
+    totalCents,
+    couponId,
+    couponCode,
+    shippingAddress,
+  } = prepared;
+
+  const orderNumber = input.orderNumber?.trim() || generateOrderNumber();
+
   const { data: order, error: orderError } = await supabase
     .from("orders")
     .insert({
@@ -278,10 +340,11 @@ export async function createPendingOrder(input: {
       shipping_cents: shippingCents,
       total_cents: totalCents,
       currency: "MXN",
-      coupon_id: couponResult.couponId,
-      coupon_code: couponResult.couponCode,
+      coupon_id: couponId,
+      coupon_code: couponCode,
       notes: input.notes?.trim() || null,
       payment_method: input.paymentMethod ?? null,
+      paypal_order_id: input.paypalOrderId ?? null,
     })
     .select(
       "id, order_number, total_cents, subtotal_cents, discount_cents, shipping_cents, coupon_code",
@@ -317,10 +380,12 @@ export async function createPendingOrder(input: {
   }
 
   // Correos al crear el pedido (no bloquean el checkout si fallan).
-  try {
-    await sendNewOrderAdminNotifyEmail(order.id);
-  } catch (e) {
-    console.error("[email] admin notify on create failed", e);
+  if (input.notifyAdmin !== false) {
+    try {
+      await sendNewOrderAdminNotifyEmail(order.id);
+    } catch (e) {
+      console.error("[email] admin notify on create failed", e);
+    }
   }
 
   if (input.paymentMethod === PAYMENT_METHODS.spei) {

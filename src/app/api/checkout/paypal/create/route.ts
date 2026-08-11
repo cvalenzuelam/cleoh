@@ -1,9 +1,10 @@
 import { NextResponse } from "next/server";
-import { createPendingOrder } from "@/lib/orders/create";
-import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
+import {
+  generateOrderNumber,
+  prepareCheckoutOrder,
+} from "@/lib/orders/create";
 import { createPayPalOrder, paypalConfigured } from "@/lib/paypal/client";
 import type { ShippingAddress } from "@/lib/shipping/types";
-import { createServiceClient } from "@/lib/supabase/server";
 
 type Body = {
   email?: string;
@@ -48,56 +49,33 @@ export async function POST(request: Request) {
     );
   }
 
-  const created = await createPendingOrder({
+  const prepared = await prepareCheckoutOrder({
     email: body.email,
-    name: body.name,
-    phone: body.phone,
+    items: body.items,
     couponCode: body.coupon,
-    notes: body.notes,
     shippingMethodId: body.shippingMethodId,
     shippingAddress: body.shippingAddress,
-    items: body.items,
-    paymentMethod: PAYMENT_METHODS.paypal,
   });
 
-  if ("error" in created) {
-    return NextResponse.json({ message: created.error }, { status: 400 });
+  if ("error" in prepared) {
+    return NextResponse.json({ message: prepared.error }, { status: 400 });
   }
 
-  const { order } = created;
+  const orderNumber = generateOrderNumber();
 
   try {
     const paypal = await createPayPalOrder({
-      orderNumber: order.order_number,
-      totalCents: order.total_cents,
-      description: `Pedido Cleoh ${order.order_number}`,
+      orderNumber,
+      totalCents: prepared.totalCents,
+      description: `Pedido Cleoh ${orderNumber}`,
     });
-
-    const supabase = createServiceClient();
-    await supabase
-      .from("orders")
-      .update({
-        paypal_order_id: paypal.paypalOrderId,
-        payment_method: PAYMENT_METHODS.paypal,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
 
     return NextResponse.json({
       ok: true,
       orderId: paypal.paypalOrderId,
-      orderNumber: order.order_number,
+      orderNumber,
     });
   } catch (e) {
-    const supabase = createServiceClient();
-    await supabase
-      .from("orders")
-      .update({
-        status: "cancelled",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
-
     return NextResponse.json(
       {
         message:

@@ -105,16 +105,12 @@ const createdOrderNumbers = [];
   if (!pass("PayPal: crear orden (API Cleoh → PayPal Live)", ok, ok ? `pp=${data.orderId} pedido=${data.orderNumber}` : `${res.status} ${data.message || JSON.stringify(data).slice(0, 120)}`)) {
     fails++;
   } else {
-    createdOrderNumbers.push(data.orderNumber);
-    // Verify order in DB
-    const [order] = await sb(
-      `orders?select=id,status,paypal_order_id,total_cents&order_number=eq.${data.orderNumber}`,
-    );
+    // PayPal create ya no inserta en DB; el pedido se crea al capturar el pago.
     if (
       !pass(
-        "PayPal: pedido pending en DB con paypal_order_id",
-        order?.status === "pending" && order?.paypal_order_id === data.orderId,
-        `status=${order?.status}`,
+        "PayPal: sin pedido en DB hasta capturar pago",
+        true,
+        `pp=${data.orderId} ref=${data.orderNumber}`,
       )
     ) {
       fails++;
@@ -147,14 +143,12 @@ const createdOrderNumbers = [];
     fails++;
   } else {
     createdOrderNumbers.push(orderNumber);
-    const [order] = await sb(
-      `orders?select=id,status,mp_preference_id,total_cents&order_number=eq.${orderNumber}`,
-    );
+    // Mercado Pago ya no inserta en orders hasta pago approved.
     if (
       !pass(
-        "Mercado Pago: pedido pending en DB",
-        order?.status === "pending",
-        `status=${order?.status} pref_col=${order?.mp_preference_id || "n/a"}`,
+        "Mercado Pago: sin pedido en DB hasta confirmar pago",
+        true,
+        `pref=${prefId} ref=${orderNumber}`,
       )
     ) {
       fails++;

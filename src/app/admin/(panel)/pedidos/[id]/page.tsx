@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
 import { OrderPaymentActions } from "@/components/admin/OrderPaymentActions";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
 import { OrderStatusActions } from "@/components/admin/OrderStatusActions";
@@ -231,28 +232,39 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
             </h2>
             <p className="mt-1 text-xs text-zinc-400">
               {paymentMethod === "spei"
-                ? "Los reembolsos por transferencia se gestionan manualmente desde tu banco."
+                ? "Transfiere el dinero manualmente y registra el reembolso para actualizar el pedido."
                 : "Emite un reembolso total o parcial del pedido."}
             </p>
             <div className="mt-3">
-              {paymentMethod === "spei" ? (
-                <p className="text-sm text-zinc-500">
-                  Si necesitas devolver el dinero, transfiérelo al cliente y
-                  marca el pedido como cancelado o contáctalo por correo.
-                </p>
-              ) : (
-                <OrderRefundPanel
-                  orderId={order.id}
-                  status={order.status}
-                  subtotalCents={order.subtotal_cents}
-                  discountCents={order.discount_cents}
-                  shippingCents={order.shipping_cents}
-                  totalCents={order.total_cents}
-                  refundedCents={order.refunded_cents ?? 0}
-                  paymentLabel={paymentLabel}
-                  items={items ?? []}
-                />
-              )}
+              <OrderRefundPanel
+                orderId={order.id}
+                status={order.status}
+                subtotalCents={order.subtotal_cents}
+                discountCents={order.discount_cents}
+                shippingCents={order.shipping_cents}
+                totalCents={order.total_cents}
+                refundedCents={order.refunded_cents ?? 0}
+                paymentLabel={paymentLabel}
+                manualOnly={paymentMethod === "spei"}
+                items={items ?? []}
+              />
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-red-100 bg-white p-5 lg:col-span-2">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-red-700">
+              Zona de peligro
+            </h2>
+            <p className="mt-1 text-xs text-zinc-400">
+              Elimina el pedido de la base de datos (útil para datos de prueba).
+            </p>
+            <div className="mt-3">
+              <DeleteOrderButton
+                orderId={order.id}
+                orderNumber={order.order_number}
+                customerEmail={order.email}
+                status={order.status}
+              />
             </div>
           </section>
         </div>

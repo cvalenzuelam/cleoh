@@ -24,10 +24,10 @@ export type PreferenceItem = {
 };
 
 export async function createCheckoutPreference(input: {
-  orderId: string;
   orderNumber: string;
   items: PreferenceItem[];
   payer: { name: string; email: string; phone?: string };
+  orderId?: string;
 }) {
   const base = siteUrl();
   const isLocal =
@@ -51,7 +51,7 @@ export async function createCheckoutPreference(input: {
     },
     external_reference: input.orderNumber,
     metadata: {
-      order_id: input.orderId,
+      ...(input.orderId ? { order_id: input.orderId } : {}),
       order_number: input.orderNumber,
     },
     back_urls: {
@@ -136,11 +136,14 @@ export async function refundMercadoPagoPayment(
       ? { amount: Number((input.amountCents / 100).toFixed(2)) }
       : {};
 
+  const idempotencyKey = crypto.randomUUID();
+
   const res = await fetch(`${MP_API}/v1/payments/${paymentId}/refunds`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${accessToken()}`,
       "Content-Type": "application/json",
+      "X-Idempotency-Key": idempotencyKey,
     },
     body: JSON.stringify(body),
     cache: "no-store",
@@ -150,7 +153,7 @@ export async function refundMercadoPagoPayment(
     id?: number;
     status?: string;
     message?: string;
-    cause?: { description?: string }[];
+    cause?: { description?: string; code?: string }[];
   };
 
   if (!res.ok) {

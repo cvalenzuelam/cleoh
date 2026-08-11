@@ -1,9 +1,15 @@
 import { NextResponse } from "next/server";
 import { createCheckoutPreference } from "@/lib/mercadopago/client";
-import { createPendingOrder } from "@/lib/orders/create";
+import {
+  saveCheckoutIntent,
+  setCheckoutIntentPreference,
+} from "@/lib/orders/checkout-intent";
+import {
+  generateOrderNumber,
+  prepareCheckoutOrder,
+} from "@/lib/orders/create";
 import { PAYMENT_METHODS } from "@/lib/orders/payment-method";
 import type { ShippingAddress } from "@/lib/shipping/types";
-import { createServiceClient } from "@/lib/supabase/server";
 
 type Body = {
   email?: string;
@@ -42,61 +48,78 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message:
-          "Falta MP_ACCESS_TOKEN en .env.local. Usa un Access Token de prueba (TEST-…) de Mercado Pago Developers.",
+          "Falta MP_ACCESS_TOKEN. Usa credenciales de producción (APP_USR-…) de Mercado Pago.",
       },
       { status: 503 },
     );
   }
 
-  const created = await createPendingOrder({
-    email: body.email,
-    name: body.name,
-    phone: body.phone,
-    couponCode: body.coupon,
-    notes: body.notes,
-    shippingMethodId: body.shippingMethodId,
-    shippingAddress: body.shippingAddress,
-    items: body.items,
-    paymentMethod: PAYMENT_METHODS.mercadopago,
-  });
-
-  if ("error" in created) {
-    return NextResponse.json({ message: created.error }, { status: 400 });
+  if (!body.shippingMethodId || !body.shippingAddress) {
+    return NextResponse.json(
+      { message: "Faltan datos de envío." },
+      { status: 400 },
+    );
   }
 
-  const { order, lines } = created;
+  const prepared = await prepareCheckoutOrder({
+    email: body.email,
+    items: body.items,
+    couponCode: body.coupon,
+    shippingMethodId: body.shippingMethodId,
+    shippingAddress: body.shippingAddress,
+  });
+
+  if ("error" in prepared) {
+    return NextResponse.json({ message: prepared.error }, { status: 400 });
+  }
+
+  const orderNumber = generateOrderNumber();
 
   try {
-    const preferenceItems = lines.map((l) => ({
+    await saveCheckoutIntent({
+      orderNumber,
+      paymentMethod: PAYMENT_METHODS.mercadopago,
+      payload: {
+        email: body.email,
+        name: body.name,
+        phone: body.phone,
+        coupon: body.coupon,
+        notes: body.notes,
+        shippingMethodId: body.shippingMethodId,
+        shippingAddress: body.shippingAddress,
+        items: body.items,
+      },
+    });
+
+    const preferenceItems = prepared.lines.map((l) => ({
       id: l.productId,
       title: `${l.name} · ${l.size}`,
       quantity: l.quantity,
       unit_price: l.unitPriceCents / 100,
     }));
 
-    if (order.discount_cents > 0) {
+    if (prepared.discountCents > 0) {
       preferenceItems.push({
         id: "discount",
-        title: order.coupon_code
-          ? `Descuento (${order.coupon_code})`
+        title: prepared.couponCode
+          ? `Descuento (${prepared.couponCode})`
           : "Descuento",
         quantity: 1,
-        unit_price: -(order.discount_cents / 100),
+        unit_price: -(prepared.discountCents / 100),
       });
     }
 
-    if (order.shipping_cents > 0) {
+    if (prepared.shippingCents > 0) {
       preferenceItems.push({
         id: "shipping",
         title: "Envío",
         quantity: 1,
-        unit_price: order.shipping_cents / 100,
+        unit_price: prepared.shippingCents / 100,
       });
     }
 
     const preference = await createCheckoutPreference({
-      orderId: order.id,
-      orderNumber: order.order_number,
+      orderNumber,
       payer: {
         name: body.name,
         email: body.email,
@@ -105,35 +128,18 @@ export async function POST(request: Request) {
       items: preferenceItems,
     });
 
-    const supabase = createServiceClient();
-    await supabase
-      .from("orders")
-      .update({
-        mp_preference_id: preference.preferenceId,
-        payment_method: PAYMENT_METHODS.mercadopago,
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
+    await setCheckoutIntentPreference(orderNumber, preference.preferenceId);
 
     return NextResponse.json({
       ok: true,
       initPoint: preference.initPoint,
       preferenceId: preference.preferenceId,
-      orderNumber: order.order_number,
-      totalCents: order.total_cents,
-      discountCents: order.discount_cents,
-      shippingCents: order.shipping_cents,
+      orderNumber,
+      totalCents: prepared.totalCents,
+      discountCents: prepared.discountCents,
+      shippingCents: prepared.shippingCents,
     });
   } catch (e) {
-    const supabase = createServiceClient();
-    await supabase
-      .from("orders")
-      .update({
-        status: "cancelled",
-        updated_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
-
     return NextResponse.json(
       {
         message:
