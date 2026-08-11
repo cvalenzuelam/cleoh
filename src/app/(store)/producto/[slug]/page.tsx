@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { isProductSoldOut } from "@/components/product/ProductBadge";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { ProductPurchase } from "@/components/product/ProductPurchase";
+import { ProductViewContent } from "@/components/product/ProductViewContent";
 import { RelatedProducts } from "@/components/product/RelatedProducts";
 import { JsonLd } from "@/components/seo/JsonLd";
 import {
@@ -80,6 +81,12 @@ export default async function ProductPage({ params }: Props) {
     <>
       <JsonLd data={productJsonLd(product)} />
       <JsonLd data={breadcrumbJsonLd(breadcrumbItems)} />
+
+      <ProductViewContent
+        productId={product.id}
+        name={product.name}
+        price={product.price}
+      />
 
     <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
       <div className="mb-8 flex flex-wrap items-center justify-between gap-3 text-sm text-ink-soft animate-fade-up">

@@ -5,6 +5,9 @@
  * segundos antes de darse por vencido, en vez de perder el evento en
  * silencio con `window.fbq?.(...)`.
  */
+import { sendMetaCapiFromClient } from "@/lib/analytics/metaCapiClient";
+import { createMetaEventId } from "@/lib/analytics/metaEventId";
+
 function whenPixelReady(callback: () => void, attemptsLeft = 20) {
   if (typeof window === "undefined") return;
   if (window.fbq) {
@@ -37,6 +40,40 @@ export function trackMetaEvent(
       window.fbq?.("track", event, params);
     }
   });
+}
+
+type CommerceTrackOptions = {
+  /** Si no se pasa, se genera uno automáticamente. */
+  eventId?: string;
+  /** Respaldo Conversions API (default true). */
+  capi?: boolean;
+  email?: string;
+  phone?: string;
+};
+
+/**
+ * Pixel del navegador + CAPI con el mismo event_id (deduplicación en Meta).
+ * Usar en ViewContent, AddToCart e InitiateCheckout.
+ */
+export function trackMetaCommerceEvent(
+  event: string,
+  params: Record<string, unknown>,
+  options: CommerceTrackOptions = {},
+) {
+  const eventId = options.eventId ?? createMetaEventId(event.toLowerCase());
+  trackMetaEvent(event, params, eventId);
+
+  if (options.capi !== false) {
+    sendMetaCapiFromClient({
+      eventName: event,
+      eventId,
+      customData: params,
+      email: options.email,
+      phone: options.phone,
+    });
+  }
+
+  return eventId;
 }
 
 const PURCHASE_SNAPSHOT_KEY = "cleoh-pixel-purchase-snapshot";

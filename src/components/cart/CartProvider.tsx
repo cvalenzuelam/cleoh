@@ -24,7 +24,7 @@ import {
   clampLineQuantity,
   type StockAvailability,
 } from "@/lib/cart/stock-limits";
-import { trackMetaEvent } from "@/lib/analytics/metaPixel";
+import { trackMetaCommerceEvent } from "@/lib/analytics/metaPixel";
 
 type AddInput = Omit<CartItem, "key" | "quantity"> & {
   quantity?: number;
@@ -243,7 +243,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         setLastAddedKey(key);
         setDrawerMode("added");
         setIsOpen(true);
-        trackMetaEvent("AddToCart", {
+        trackMetaCommerceEvent("AddToCart", {
           content_ids: [input.productId],
           content_name: input.name,
           content_type: "product",

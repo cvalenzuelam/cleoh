@@ -19,7 +19,8 @@ import { BankTransferCheckout } from "@/components/cart/BankTransferCheckout";
 import { PayPalCheckoutButtons } from "@/components/cart/PayPalCheckoutButtons";
 import { InstagramLink } from "@/components/store/InstagramLink";
 import { MX_STATES } from "@/data/mexico";
-import { savePurchaseSnapshot, trackMetaEvent } from "@/lib/analytics/metaPixel";
+import { savePurchaseSnapshot, trackMetaCommerceEvent } from "@/lib/analytics/metaPixel";
+import { createMetaEventId } from "@/lib/analytics/metaEventId";
 import { sizeLabel } from "@/lib/admin/products";
 import { productImage } from "@/lib/catalog/types";
 import {
@@ -457,18 +458,28 @@ export function CheckoutView({ shippingMethods }: Props) {
 
   // Un solo InitiateCheckout por visita a /checkout, no por cada re-render.
   const initiateCheckoutFiredRef = useRef(false);
+  const initiateCheckoutEventIdRef = useRef<string | null>(null);
   useEffect(() => {
     if (!ready || items.length === 0 || initiateCheckoutFiredRef.current) {
       return;
     }
     initiateCheckoutFiredRef.current = true;
-    trackMetaEvent("InitiateCheckout", {
-      content_ids: items.map((i) => i.productId),
-      contents: items.map((i) => ({ id: i.productId, quantity: i.quantity })),
-      num_items: count,
-      value: subtotal,
-      currency: "MXN",
-    });
+    const eventId =
+      initiateCheckoutEventIdRef.current ??
+      createMetaEventId("initiatecheckout");
+    initiateCheckoutEventIdRef.current = eventId;
+
+    trackMetaCommerceEvent(
+      "InitiateCheckout",
+      {
+        content_ids: items.map((i) => i.productId),
+        contents: items.map((i) => ({ id: i.productId, quantity: i.quantity })),
+        num_items: count,
+        value: subtotal,
+        currency: "MXN",
+      },
+      { eventId, email: email.trim() || undefined },
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe evaluarse al montar con carrito listo
   }, [ready, items.length]);
 
