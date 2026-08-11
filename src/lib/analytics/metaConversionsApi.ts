@@ -7,8 +7,11 @@ const GRAPH_VERSION = "v21.0";
 
 const CLIENT_ALLOWED_EVENTS = new Set([
   "ViewContent",
+  "Search",
   "AddToCart",
+  "AddPaymentInfo",
   "InitiateCheckout",
+  "CompleteRegistration",
 ]);
 
 export function isClientMetaCapiEvent(name: string) {

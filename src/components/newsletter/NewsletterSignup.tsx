@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartProvider";
+import { trackMetaCommerceEvent } from "@/lib/analytics/metaPixel";
 import {
   saveCheckoutEmail,
   syncAbandonedCartNow,
@@ -131,6 +132,16 @@ export function NewsletterSignup({
       setStatus("success");
       setResendError("");
       setResendStatus("idle");
+
+      // Solo altas nuevas: reenviarle el cupón a un suscriptor viejo no es
+      // un registro y contarlo inflaría el evento.
+      if (!data.duplicate) {
+        trackMetaCommerceEvent(
+          "CompleteRegistration",
+          { content_name: "Newsletter", status: true },
+          { email: normalized },
+        );
+      }
 
       saveCheckoutEmail(normalized);
       if (ready && items.length) {

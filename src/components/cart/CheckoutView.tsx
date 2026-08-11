@@ -483,6 +483,33 @@ export function CheckoutView({ shippingMethods }: Props) {
     // eslint-disable-next-line react-hooks/exhaustive-deps -- solo debe evaluarse al montar con carrito listo
   }, [ready, items.length]);
 
+  // Una vez por método: el usuario puede volver y probar otro, pero repetir
+  // el mismo evento no agrega señal.
+  const paymentInfoTrackedRef = useRef<Set<string>>(new Set());
+  const trackAddPaymentInfo = useCallback(
+    (method: string) => {
+      if (paymentInfoTrackedRef.current.has(method)) return;
+      paymentInfoTrackedRef.current.add(method);
+
+      trackMetaCommerceEvent(
+        "AddPaymentInfo",
+        {
+          content_ids: items.map((i) => i.productId),
+          contents: items.map((i) => ({
+            id: i.productId,
+            quantity: i.quantity,
+          })),
+          num_items: count,
+          value: estimatedTotal,
+          currency: "MXN",
+          payment_method: method,
+        },
+        { email: email.trim() || undefined },
+      );
+    },
+    [items, count, estimatedTotal, email],
+  );
+
   useEffect(() => {
     if (!ready || !items.length) return;
     const normalized = email.trim().toLowerCase();
@@ -748,6 +775,8 @@ export function CheckoutView({ shippingMethods }: Props) {
       return Promise.reject(issue.message);
     }
 
+    trackAddPaymentInfo("mercadopago");
+
     const res = await fetch("/api/checkout/mercadopago", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -774,7 +803,7 @@ export function CheckoutView({ shippingMethods }: Props) {
     });
 
     return data.preferenceId;
-  }, [buildPayload, showFieldIssue, estimatedTotal, count]);
+  }, [buildPayload, showFieldIssue, estimatedTotal, count, trackAddPaymentInfo]);
 
   const createPayPalOrder = useCallback(async () => {
     setStatus(null);
@@ -784,6 +813,8 @@ export function CheckoutView({ shippingMethods }: Props) {
       showFieldIssue(issue);
       return Promise.reject(issue.message);
     }
+
+    trackAddPaymentInfo("paypal");
 
     const res = await fetch("/api/checkout/paypal/create", {
       method: "POST",
@@ -811,7 +842,7 @@ export function CheckoutView({ shippingMethods }: Props) {
     });
 
     return data.orderId;
-  }, [buildPayload, showFieldIssue, estimatedTotal, count]);
+  }, [buildPayload, showFieldIssue, estimatedTotal, count, trackAddPaymentInfo]);
 
   const onPayPalApprove = useCallback(
     async (orderID: string) => {
@@ -849,6 +880,8 @@ export function CheckoutView({ shippingMethods }: Props) {
       throw new Error(issue.message);
     }
 
+    trackAddPaymentInfo("spei");
+
     const res = await fetch("/api/checkout/transfer", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -872,7 +905,7 @@ export function CheckoutView({ shippingMethods }: Props) {
       method: "spei",
     });
     router.push(`/checkout/pendiente?${q.toString()}`);
-  }, [buildPayload, clear, router, showFieldIssue]);
+  }, [buildPayload, clear, router, showFieldIssue, trackAddPaymentInfo]);
 
   if (exiting) {
     return null;

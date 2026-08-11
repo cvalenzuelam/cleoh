@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ProductCard } from "@/components/product/ProductCard";
+import { SearchTrack } from "@/components/search/SearchTrack";
 import {
   getFeaturedProducts,
   getNavCategories,
@@ -36,6 +37,8 @@ export default async function BuscarPage({ searchParams }: Props) {
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+      <SearchTrack term={term} resultIds={products.map((p) => p.id)} />
+
       <header className="max-w-xl animate-fade-up">
         <p className="text-[0.65rem] uppercase tracking-[0.22em] text-rose">
           Búsqueda
