@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
+import { AdminProductThumbnail } from "@/components/admin/AdminProductThumbnail";
 import { DeleteOrderButton } from "@/components/admin/DeleteOrderButton";
 import { OrderPaymentActions } from "@/components/admin/OrderPaymentActions";
 import { OrderRefundPanel } from "@/components/admin/OrderRefundPanel";
@@ -11,7 +12,11 @@ import {
   orderStatusLabel,
 } from "@/lib/orders/format";
 import { paymentMethodLabel, resolvePaymentMethod } from "@/lib/orders/payment-method";
-import { sizeDisplayName } from "@/lib/admin/products";
+import {
+  attributionSummary,
+  sanitizeAttribution,
+} from "@/lib/analytics/attribution";
+import { productThumbnailUrl, sizeDisplayName } from "@/lib/admin/products";
 import { createServiceClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -37,7 +42,7 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
   const { data: order } = await supabase
     .from("orders")
     .select(
-      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, payment_method, created_at",
+      "id, order_number, status, email, phone, customer_name, shipping_address, subtotal_cents, discount_cents, shipping_cents, total_cents, refunded_cents, coupon_code, notes, tracking_code, tracking_url, mp_payment_id, paypal_order_id, payment_method, attribution, created_at",
     )
     .eq("id", id)
     .maybeSingle();
@@ -47,9 +52,78 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
   const { data: items } = await supabase
     .from("order_items")
     .select(
-      "id, product_name, variant_label, quantity, refunded_quantity, unit_price_cents, line_total_cents",
+      "id, product_id, product_name, variant_label, quantity, refunded_quantity, unit_price_cents, line_total_cents",
     )
     .eq("order_id", order.id);
+
+  const productIds = [
+    ...new Set(
+      (items ?? [])
+        .map((item) => item.product_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  ];
+
+  const imageByProductId = new Map<string, string | null>();
+  const imageByName = new Map<string, string | null>();
+
+  if (productIds.length > 0) {
+    const { data: productRows } = await supabase
+      .from("products")
+      .select("id, name, primary_image_url, product_images ( url, sort_order )")
+      .in("id", productIds);
+
+    for (const row of productRows ?? []) {
+      const url = productThumbnailUrl({
+        primary_image_url: row.primary_image_url,
+        product_images: (row.product_images ?? []) as {
+          url: string;
+          sort_order: number;
+        }[],
+      });
+      imageByProductId.set(row.id, url);
+      imageByName.set(row.name, url);
+    }
+  }
+
+  const missingNames = [
+    ...new Set(
+      (items ?? [])
+        .filter(
+          (item) =>
+            !item.product_id || !imageByProductId.has(item.product_id),
+        )
+        .map((item) => item.product_name),
+    ),
+  ].filter((name) => !imageByName.has(name));
+
+  if (missingNames.length > 0) {
+    const { data: byName } = await supabase
+      .from("products")
+      .select("name, primary_image_url, product_images ( url, sort_order )")
+      .in("name", missingNames);
+
+    for (const row of byName ?? []) {
+      imageByName.set(
+        row.name,
+        productThumbnailUrl({
+          primary_image_url: row.primary_image_url,
+          product_images: (row.product_images ?? []) as {
+            url: string;
+            sort_order: number;
+          }[],
+        }),
+      );
+    }
+  }
+
+  const lines = (items ?? []).map((item) => ({
+    ...item,
+    thumbnail:
+      (item.product_id ? imageByProductId.get(item.product_id) : null) ??
+      imageByName.get(item.product_name) ??
+      null,
+  }));
 
   const address = (order.shipping_address ?? {}) as Address;
 
@@ -57,6 +131,7 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
     paypalOrderId: order.paypal_order_id,
   });
   const paymentMethod = resolvePaymentMethod(order);
+  const attribution = sanitizeAttribution(order.attribution);
 
   return (
     <>
@@ -89,6 +164,25 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
             <p className="text-sm text-zinc-500">{order.email}</p>
             {order.phone ? (
               <p className="text-sm text-zinc-500">{order.phone}</p>
+            ) : null}
+          </section>
+
+          <section className="rounded-lg border border-zinc-200 bg-white p-5">
+            <h2 className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+              Origen
+            </h2>
+            <p className="mt-2 text-sm text-zinc-900">
+              {attributionSummary(attribution)}
+            </p>
+            {attribution?.landing_path ? (
+              <p className="mt-1 text-xs text-zinc-500">
+                Entró en {attribution.landing_path}
+              </p>
+            ) : null}
+            {attribution?.referrer_host ? (
+              <p className="text-xs text-zinc-400">
+                Referrer: {attribution.referrer_host}
+              </p>
             ) : null}
           </section>
 
@@ -136,22 +230,45 @@ export default async function AdminPedidoDetailPage({ params }: Props) {
               Artículos
             </h2>
             <ul className="mt-3 divide-y divide-zinc-100 text-sm">
-              {(items ?? []).map((item) => (
-                <li key={item.id} className="flex justify-between gap-3 py-2">
-                  <span>
-                    {item.product_name}
-                    {item.variant_label
-                      ? ` · ${sizeDisplayName(item.variant_label)}`
-                      : ""}{" "}
-                    × {item.quantity}
-                    {(item.refunded_quantity ?? 0) > 0 ? (
-                      <span className="text-violet-600">
-                        {" "}
-                        ({item.refunded_quantity} reembolsados)
-                      </span>
-                    ) : null}
+              {lines.map((item) => (
+                <li
+                  key={item.id}
+                  className="flex items-center justify-between gap-3 py-2.5"
+                >
+                  <span className="flex min-w-0 items-center gap-3">
+                    {item.product_id ? (
+                      <Link
+                        href={`/admin/productos/${item.product_id}`}
+                        className="shrink-0"
+                      >
+                        <AdminProductThumbnail
+                          src={item.thumbnail}
+                          alt={item.product_name}
+                          className="h-12 w-12 rounded-md object-cover bg-zinc-100 ring-1 ring-zinc-200/80"
+                        />
+                      </Link>
+                    ) : (
+                      <AdminProductThumbnail
+                        src={item.thumbnail}
+                        alt={item.product_name}
+                        className="h-12 w-12 shrink-0 rounded-md object-cover bg-zinc-100 ring-1 ring-zinc-200/80"
+                      />
+                    )}
+                    <span>
+                      {item.product_name}
+                      {item.variant_label
+                        ? ` · ${sizeDisplayName(item.variant_label)}`
+                        : ""}{" "}
+                      × {item.quantity}
+                      {(item.refunded_quantity ?? 0) > 0 ? (
+                        <span className="text-violet-600">
+                          {" "}
+                          ({item.refunded_quantity} reembolsados)
+                        </span>
+                      ) : null}
+                    </span>
                   </span>
-                  <span className="tabular-nums">
+                  <span className="shrink-0 tabular-nums">
                     {formatOrderMoney(item.line_total_cents)}
                   </span>
                 </li>
