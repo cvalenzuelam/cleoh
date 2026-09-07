@@ -203,4 +203,4 @@ Reportes: quincenal (peso promedio + fotos + 2–3 cargas). Semanal corto opcion
 
 ---
 
-*Última actualización: contexto inicial del plan (cuestionario + InBody).*
+*Última actualización: 2026-09-07 — Semana 1 arranca lunes con Pierna A. Desayuno: 3 tacos de birria (+ carne extra de otro taco).*
