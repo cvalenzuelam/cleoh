@@ -102,7 +102,7 @@ const productSelect = `
   primary_image_url,
   is_featured,
   created_at,
-  categories ( slug, name ),
+  categories!products_category_id_fkey ( slug, name ),
   product_variants ( size, stock, is_active ),
   product_images ( url, sort_order )
 `;
@@ -352,7 +352,7 @@ export async function getCartUpsellProducts(
   if (uniqueIds.length) {
     const { data } = await supabase
       .from("products")
-      .select("categories ( slug )")
+      .select("categories!products_category_id_fkey ( slug )")
       .in("id", uniqueIds);
 
     const categorySlugs = new Set<string>();
@@ -380,7 +380,7 @@ const searchSelect = `
   price_cents,
   compare_at_cents,
   primary_image_url,
-  categories ( slug, name )
+  categories!products_category_id_fkey ( slug, name )
 `;
 
 type SearchRow = {
